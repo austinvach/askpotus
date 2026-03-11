@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { randomUUID } from "crypto";
+import { randomUUID, createHash } from "crypto";
 import { openai } from "@workspace/integrations-openai-ai-server";
 import { GenerateExecutiveOrderBody } from "@workspace/api-zod";
 import { db, executiveOrdersTable } from "@workspace/db";
@@ -70,14 +70,34 @@ router.post("/executive-orders/invoice", async (req, res) => {
 router.get("/executive-orders/invoice/:paymentHash", async (req, res) => {
   try {
     const client = getNWCClient();
-    const result = await client.lookupInvoice({
-      payment_hash: req.params.paymentHash,
-    });
+    const { transactions } = await client.listTransactions({ type: "incoming", limit: 50 });
     await client.close();
-    res.json({ paid: result.settled_at != null });
+    const match = transactions.find(
+      (t: Record<string, unknown>) => t.payment_hash === req.params.paymentHash
+    );
+    const paid = !!match;
+    if (paid) console.log("Payment confirmed for hash:", req.params.paymentHash.slice(0, 12));
+    res.json({ paid });
   } catch (err) {
     console.error("Payment check error:", err);
     res.status(500).json({ error: "Failed to check payment" });
+  }
+});
+
+router.post("/executive-orders/verify-preimage", (req, res) => {
+  try {
+    const { preimage, paymentHash } = req.body as { preimage?: string; paymentHash?: string };
+    if (!preimage || !paymentHash) {
+      res.status(400).json({ error: "Missing preimage or paymentHash" });
+      return;
+    }
+    const hash = createHash("sha256").update(Buffer.from(preimage, "hex")).digest("hex");
+    const paid = hash === paymentHash;
+    console.log("preimage verify:", preimage.slice(0, 8), "hash:", hash.slice(0, 8), "expected:", paymentHash.slice(0, 8), "paid:", paid);
+    res.json({ paid });
+  } catch (err) {
+    console.error("Preimage verify error:", err);
+    res.status(500).json({ error: "Verification failed" });
   }
 });
 

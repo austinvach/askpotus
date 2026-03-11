@@ -54,7 +54,20 @@ export function PaymentStep({ invoice, paymentHash, onPaid, onBack }: PaymentSte
     setPayError(null);
     try {
       await window.webln!.enable();
-      await window.webln!.sendPayment(invoice);
+      const result = await window.webln!.sendPayment(invoice);
+      const verifyRes = await fetch("/api/executive-orders/verify-preimage", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ preimage: result.preimage, paymentHash }),
+      });
+      const { paid } = await verifyRes.json();
+      if (paid) {
+        clearInterval(pollRef.current!);
+        setPaid(true);
+        setTimeout(onPaid, 800);
+      } else {
+        setPayError("Payment could not be verified. Please try again.");
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       if (!msg.toLowerCase().includes("cancel") && !msg.toLowerCase().includes("abort")) {
