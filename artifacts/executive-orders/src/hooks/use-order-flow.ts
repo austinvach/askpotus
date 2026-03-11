@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { useGenerateExecutiveOrder } from "@workspace/api-client-react";
 import type { GenerateOrderRequestPresident, GenerateOrderResponse } from "@workspace/api-client-react/src/generated/api.schemas";
 import { useToast } from "@/hooks/use-toast";
@@ -11,7 +12,8 @@ export function useOrderFlow() {
   const [selectedPresident, setSelectedPresident] = useState<GenerateOrderRequestPresident | null>(null);
   const [dilemma, setDilemma] = useState("");
   const [result, setResult] = useState<GenerateOrderResponse | null>(null);
-  
+  const [, navigate] = useLocation();
+
   const { toast } = useToast();
   const generateMutation = useGenerateExecutiveOrder();
 
@@ -78,13 +80,16 @@ export function useOrderFlow() {
           dilemma: dilemma.trim()
         }
       });
-      
+
       setResult(response);
       setStep("RESULT");
-      
+
+      // Navigate to the permalink URL
+      navigate(`/order/${response.id}`);
+
       // Delay confetti slightly for dramatic effect
       setTimeout(fireConfetti, 500);
-      
+
     } catch (error) {
       toast({
         title: "Bureaucratic Error",

@@ -45,6 +45,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GenerateOrderResponse"
+  /executive-orders/{id}:
+    get:
+      operationId: getExecutiveOrder
+      tags: [executive-orders]
+      summary: Get a previously generated executive order by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Executive order found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateOrderResponse"
+        "404":
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     HealthStatus:
@@ -54,6 +78,13 @@ components:
           type: string
       required:
         - status
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
     GenerateOrderRequest:
       type: object
       properties:
@@ -70,6 +101,9 @@ components:
     GenerateOrderResponse:
       type: object
       properties:
+        id:
+          type: string
+          description: Unique ID for the order (used for permalink)
         orderNumber:
           type: string
           description: A fake executive order number
@@ -82,12 +116,21 @@ components:
         president:
           type: string
           description: The president who issued the order
+        presidentKey:
+          type: string
+          description: The president enum key
+        dilemma:
+          type: string
+          description: The original dilemma submitted
         date:
           type: string
           description: The date of the order
       required:
+        - id
         - orderNumber
         - title
         - body
         - president
+        - presidentKey
+        - dilemma
         - date

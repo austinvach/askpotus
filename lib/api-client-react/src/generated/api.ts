@@ -17,6 +17,7 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  ErrorResponse,
   GenerateOrderRequest,
   GenerateOrderResponse,
   HealthStatus,
@@ -193,3 +194,90 @@ export const useGenerateExecutiveOrder = <
 > => {
   return useMutation(getGenerateExecutiveOrderMutationOptions(options));
 };
+
+/**
+ * @summary Get a previously generated executive order by ID
+ */
+export const getGetExecutiveOrderUrl = (id: string) => {
+  return `/api/executive-orders/${id}`;
+};
+
+export const getExecutiveOrder = async (
+  id: string,
+  options?: RequestInit,
+): Promise<GenerateOrderResponse> => {
+  return customFetch<GenerateOrderResponse>(getGetExecutiveOrderUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetExecutiveOrderQueryKey = (id: string) => {
+  return [`/api/executive-orders/${id}`] as const;
+};
+
+export const getGetExecutiveOrderQueryOptions = <
+  TData = Awaited<ReturnType<typeof getExecutiveOrder>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getExecutiveOrder>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetExecutiveOrderQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getExecutiveOrder>>
+  > = ({ signal }) => getExecutiveOrder(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getExecutiveOrder>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetExecutiveOrderQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getExecutiveOrder>>
+>;
+export type GetExecutiveOrderQueryError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Get a previously generated executive order by ID
+ */
+
+export function useGetExecutiveOrder<
+  TData = Awaited<ReturnType<typeof getExecutiveOrder>>,
+  TError = ErrorType<ErrorResponse>,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getExecutiveOrder>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetExecutiveOrderQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}

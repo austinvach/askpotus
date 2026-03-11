@@ -29,9 +29,30 @@ export const GenerateExecutiveOrderBody = zod.object({
 });
 
 export const GenerateExecutiveOrderResponse = zod.object({
+  id: zod.string().describe("Unique ID for the order (used for permalink)"),
   orderNumber: zod.string().describe("A fake executive order number"),
   title: zod.string().describe("The title of the executive order"),
   body: zod.string().describe("The full text of the executive order"),
   president: zod.string().describe("The president who issued the order"),
+  presidentKey: zod.string().describe("The president enum key"),
+  dilemma: zod.string().describe("The original dilemma submitted"),
+  date: zod.string().describe("The date of the order"),
+});
+
+/**
+ * @summary Get a previously generated executive order by ID
+ */
+export const GetExecutiveOrderParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetExecutiveOrderResponse = zod.object({
+  id: zod.string().describe("Unique ID for the order (used for permalink)"),
+  orderNumber: zod.string().describe("A fake executive order number"),
+  title: zod.string().describe("The title of the executive order"),
+  body: zod.string().describe("The full text of the executive order"),
+  president: zod.string().describe("The president who issued the order"),
+  presidentKey: zod.string().describe("The president enum key"),
+  dilemma: zod.string().describe("The original dilemma submitted"),
   date: zod.string().describe("The date of the order"),
 });

@@ -1,3 +1,22 @@
+# Presidential Executive Orders
+
+A fun Magic 8-Ball style web app that generates satirical "Executive Orders" in the style of past presidents (George W. Bush, Obama, Trump, Biden) to help users make personal decisions. Each order has a unique shareable permalink.
+
+## Features
+- Select a president (G.W. Bush, Obama, Trump, Biden) and describe your dilemma
+- AI generates a humorous executive order in that president's voice
+- Each order is saved to the database with a UUID
+- Shareable permalink at `/order/:id` — anyone with the link can view the order
+- Patriotic parchment-style document design with confetti on generation
+- Uses Replit AI Integrations (OpenAI) — no API key required
+
+## Key Files
+- `artifacts/executive-orders/` — React + Vite frontend (Wouter routing, Framer Motion, canvas-confetti)
+- `artifacts/api-server/src/routes/executive-orders.ts` — POST generate + GET by ID
+- `lib/db/src/schema/executive-orders.ts` — Drizzle ORM schema for the `executive_orders` table
+
+---
+
 # Workspace
 
 ## Overview

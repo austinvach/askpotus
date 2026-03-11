@@ -1,6 +1,9 @@
 import { Router, type IRouter } from "express";
+import { randomUUID } from "crypto";
 import { openai } from "@workspace/integrations-openai-ai-server";
 import { GenerateExecutiveOrderBody } from "@workspace/api-zod";
+import { db, executiveOrdersTable } from "@workspace/db";
+import { eq } from "drizzle-orm";
 
 const router: IRouter = Router();
 
@@ -97,16 +100,65 @@ IMPORTANT: Return ONLY valid JSON, no other text.`;
       parsed2 = { title: "EXECUTIVE ORDER", body: content };
     }
 
-    res.json({
+    const id = randomUUID();
+    const title = parsed2.title ?? "EXECUTIVE ORDER";
+    const body = parsed2.body ?? content;
+
+    await db.insert(executiveOrdersTable).values({
+      id,
       orderNumber,
-      title: parsed2.title ?? "EXECUTIVE ORDER",
-      body: parsed2.body ?? content,
+      title,
+      body,
       president: profile.name,
+      presidentKey: president,
+      dilemma,
+      date: dateStr,
+    });
+
+    res.json({
+      id,
+      orderNumber,
+      title,
+      body,
+      president: profile.name,
+      presidentKey: president,
+      dilemma,
       date: dateStr,
     });
   } catch (err) {
     console.error("Executive order generation error:", err);
     res.status(500).json({ error: "Failed to generate executive order" });
+  }
+});
+
+router.get("/executive-orders/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const rows = await db
+      .select()
+      .from(executiveOrdersTable)
+      .where(eq(executiveOrdersTable.id, id))
+      .limit(1);
+
+    if (rows.length === 0) {
+      res.status(404).json({ error: "Executive order not found" });
+      return;
+    }
+
+    const order = rows[0];
+    res.json({
+      id: order.id,
+      orderNumber: order.orderNumber,
+      title: order.title,
+      body: order.body,
+      president: order.president,
+      presidentKey: order.presidentKey,
+      dilemma: order.dilemma,
+      date: order.date,
+    });
+  } catch (err) {
+    console.error("Executive order fetch error:", err);
+    res.status(500).json({ error: "Failed to fetch executive order" });
   }
 });
 

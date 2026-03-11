@@ -7,6 +7,8 @@
  */
 
 export interface GenerateOrderResponse {
+  /** Unique ID for the order (used for permalink) */
+  id: string;
   /** A fake executive order number */
   orderNumber: string;
   /** The title of the executive order */
@@ -15,6 +17,10 @@ export interface GenerateOrderResponse {
   body: string;
   /** The president who issued the order */
   president: string;
+  /** The president enum key */
+  presidentKey: string;
+  /** The original dilemma submitted */
+  dilemma: string;
   /** The date of the order */
   date: string;
 }
