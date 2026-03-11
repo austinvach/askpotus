@@ -45,7 +45,7 @@ export function DocumentResult({ result, onReset, isSharedView = false }: Docume
           {/* Official Header */}
           <div className="flex flex-col items-center border-b-2 border-foreground pb-8 mb-10">
             <img
-              src={`${import.meta.env.BASE_URL}images/seal.png`}
+              src={`${import.meta.env.BASE_URL}images/seal.svg`}
               alt="Seal"
               className="w-24 h-24 mb-6 opacity-90 grayscale-[20%]"
             />

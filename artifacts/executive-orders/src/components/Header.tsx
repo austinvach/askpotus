@@ -11,7 +11,7 @@ export function Header() {
     >
       <div className="w-20 h-20 md:w-28 md:h-28 mb-6 relative">
         <img 
-          src={`${import.meta.env.BASE_URL}images/seal.png`} 
+          src={`${import.meta.env.BASE_URL}images/seal.svg`} 
           alt="Presidential Seal" 
           className="w-full h-full object-contain drop-shadow-xl"
         />

@@ -22,18 +22,18 @@ const PRESIDENTS = [
     color: "from-blue-900/80 to-blue-700/80"
   },
   {
-    id: GenerateOrderRequestPresident.trump,
-    name: "Donald Trump",
-    term: "45th & 47th",
-    image: "trump.png",
-    color: "from-red-600/80 to-red-500/80"
-  },
-  {
     id: GenerateOrderRequestPresident.biden,
     name: "Joe Biden",
     term: "46th",
     image: "biden.png",
     color: "from-blue-700/80 to-blue-500/80"
+  },
+  {
+    id: GenerateOrderRequestPresident.trump,
+    name: "Donald Trump",
+    term: "45th & 47th",
+    image: "trump.png",
+    color: "from-red-600/80 to-red-500/80"
   }
 ];
 

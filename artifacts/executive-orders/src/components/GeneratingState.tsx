@@ -29,7 +29,7 @@ export function GeneratingState() {
     >
       <div className="relative w-32 h-32 mb-12">
         <motion.img 
-          src={`${import.meta.env.BASE_URL}images/seal.png`}
+          src={`${import.meta.env.BASE_URL}images/seal.svg`}
           alt="Loading Seal"
           className="w-full h-full object-contain"
           animate={{ rotateY: 360 }}
