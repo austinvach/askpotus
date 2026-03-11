@@ -53,7 +53,8 @@ export function DilemmaForm({
             Petition to the Oval Office
           </p>
           <h2 className="text-3xl md:text-4xl font-display text-primary leading-tight">
-            What Requires the Attention of<br />
+            What Requires the Attention of
+            <br />
             President {lastName}?
           </h2>
         </div>

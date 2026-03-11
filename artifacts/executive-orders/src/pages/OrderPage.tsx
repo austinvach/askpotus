@@ -1,16 +1,20 @@
-import React from 'react';
-import { useParams, Link } from 'wouter';
-import { useGetExecutiveOrder } from '@workspace/api-client-react';
-import { DocumentResult } from '@/components/DocumentResult';
-import { Header } from '@/components/Header';
-import { motion } from 'framer-motion';
+import React from "react";
+import { useParams, Link } from "wouter";
+import { useGetExecutiveOrder } from "@workspace/api-client-react";
+import { DocumentResult } from "@/components/DocumentResult";
+import { Header } from "@/components/Header";
+import { motion } from "framer-motion";
 
 export default function OrderPage() {
   const params = useParams<{ id: string }>();
-  const id = params.id ?? '';
+  const id = params.id ?? "";
 
-  const { data: order, isLoading, isError } = useGetExecutiveOrder(id, {
-    query: { enabled: !!id }
+  const {
+    data: order,
+    isLoading,
+    isError,
+  } = useGetExecutiveOrder(id, {
+    query: { enabled: !!id },
   });
 
   if (isLoading) {
@@ -50,7 +54,8 @@ export default function OrderPage() {
               Order Not Found
             </h2>
             <p className="font-serif text-muted-foreground mb-8">
-              This executive order may have been classified, redacted, or never issued.
+              This executive order may have been classified, redacted, or never
+              issued.
             </p>
             <Link href="/">
               <a className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-white rounded-full font-display font-bold hover:bg-primary/90 transition-all duration-300">
@@ -79,8 +84,20 @@ export default function OrderPage() {
       </div>
 
       <footer className="w-full py-6 text-center text-muted-foreground/60 font-serif text-sm relative z-10 space-y-1">
-        <p>For entertainment purposes only. Not legally binding in any jurisdiction.</p>
-        <p>Vibed by <a href="https://austinvach.com" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-muted-foreground transition-colors">Austin</a></p>
+        <p>
+          For entertainment purposes only. Not legally binding in any
+          jurisdiction.
+        </p>
+        <p>
+          <a
+            href="https://austinvach.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2 hover:text-muted-foreground transition-colors"
+          >
+            Who Would Build This?
+          </a>
+        </p>
       </footer>
     </div>
   );
