@@ -1,8 +1,8 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { GenerateOrderRequestPresident } from '@workspace/api-client-react/src/generated/api.schemas';
-import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, PenTool } from 'lucide-react';
+import React from "react";
+import { motion } from "framer-motion";
+import { GenerateOrderRequestPresident } from "@workspace/api-client-react/src/generated/api.schemas";
+import { Textarea } from "@/components/ui/textarea";
+import { ArrowLeft, PenTool } from "lucide-react";
 
 interface DilemmaFormProps {
   president: GenerateOrderRequestPresident;
@@ -13,40 +13,48 @@ interface DilemmaFormProps {
   isGenerating: boolean;
 }
 
-const PRESIDENT_NAMES: Record<GenerateOrderRequestPresident, string> = {
-  [GenerateOrderRequestPresident.george_w_bush]: "George W. Bush",
-  [GenerateOrderRequestPresident.obama]: "Barack Obama",
-  [GenerateOrderRequestPresident.trump]: "Donald Trump",
-  [GenerateOrderRequestPresident.biden]: "Joe Biden",
+const PRESIDENT_LAST_NAMES: Record<GenerateOrderRequestPresident, string> = {
+  [GenerateOrderRequestPresident.george_w_bush]: "Bush",
+  [GenerateOrderRequestPresident.obama]: "Obama",
+  [GenerateOrderRequestPresident.trump]: "Trump",
+  [GenerateOrderRequestPresident.biden]: "Biden",
 };
 
-export function DilemmaForm({ president, dilemma, onChange, onSubmit, onBack, isGenerating }: DilemmaFormProps) {
-  const name = PRESIDENT_NAMES[president];
+export function DilemmaForm({
+  president,
+  dilemma,
+  onChange,
+  onSubmit,
+  onBack,
+  isGenerating,
+}: DilemmaFormProps) {
+  const lastName = PRESIDENT_LAST_NAMES[president];
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       className="w-full max-w-2xl mx-auto bg-white rounded-3xl p-8 md:p-12 box-shadow-document relative paper-texture overflow-hidden"
     >
-      <div className="paper-content">
-        <button 
-          onClick={onBack}
-          disabled={isGenerating}
-          className="absolute top-6 left-6 md:top-8 md:left-8 text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 text-sm font-semibold tracking-wide disabled:opacity-50"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </button>
+      <button
+        onClick={onBack}
+        disabled={isGenerating}
+        className="absolute top-6 left-6 md:top-8 md:left-8 z-10 text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 text-sm font-semibold tracking-wide disabled:opacity-50"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back
+      </button>
 
+      <div className="paper-content">
         <div className="text-center mt-8 mb-10">
           <p className="text-secondary font-bold tracking-widest text-xs uppercase mb-3">
             Petition to the Oval Office
           </p>
           <h2 className="text-3xl md:text-4xl font-display text-primary leading-tight">
-            What requires the attention of <br className="hidden md:block"/> {name}?
+            What Requires the Attention of<br />
+            President {lastName}?
           </h2>
         </div>
 
@@ -56,7 +64,7 @@ export function DilemmaForm({ president, dilemma, onChange, onSubmit, onBack, is
             <Textarea
               value={dilemma}
               onChange={(e) => onChange(e.target.value)}
-              placeholder="e.g., Should I order pizza or make a salad tonight? Should I quit my job to become a professional juggler?"
+              placeholder="e.g. Should I quit my job to become a professional vibe-coder?"
               className="relative w-full text-lg md:text-xl font-serif p-6 min-h-[160px] bg-background/50 border-2 border-border rounded-xl focus-visible:ring-accent focus-visible:border-accent transition-all resize-none shadow-inner"
               disabled={isGenerating}
             />
