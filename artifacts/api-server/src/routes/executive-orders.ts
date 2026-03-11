@@ -4,18 +4,18 @@ import { openai } from "@workspace/integrations-openai-ai-server";
 import { GenerateExecutiveOrderBody } from "@workspace/api-zod";
 import { db, executiveOrdersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { NWCClient } from "@getalby/sdk";
+import { LN } from "@getalby/sdk";
 import { Invoice } from "@getalby/lightning-tools";
 
 const paymentStatus = new Map<string, boolean>();
 
-let nwcClient: NWCClient | null = null;
-function getNWCClient(): NWCClient {
-  if (nwcClient) return nwcClient;
+let lnClient: LN | null = null;
+function getLNClient(): LN {
+  if (lnClient) return lnClient;
   const url = process.env.NWC_URL;
   if (!url) throw new Error("NWC_URL not configured");
-  nwcClient = new NWCClient({ nostrWalletConnectUrl: url });
-  return nwcClient;
+  lnClient = new LN(url);
+  return lnClient;
 }
 
 const router: IRouter = Router();
@@ -59,28 +59,25 @@ Sign off as "Joseph R. Biden Jr., President of the United States."`,
 
 router.post("/executive-orders/invoice", async (req, res) => {
   try {
-    const client = getNWCClient();
-    const result = await client.makeInvoice({
-      amount: 10_000,
+    const ln = getLNClient();
+    const request = await ln.requestPayment({ satoshi: 10 }, {
       description: "Executive Order — 10 sats",
     });
-    const ph = result.payment_hash;
+    const ph = request.invoice.paymentHash;
+    const bolt11 = request.invoice.paymentRequest;
     paymentStatus.set(ph, false);
 
-    client.subscribeNotifications(
-      (notification) => {
-        const tx = notification.notification;
-        if (tx.payment_hash === ph) {
-          console.log("Payment notification received for:", ph.slice(0, 12));
-          paymentStatus.set(ph, true);
-        }
-      },
-      ["payment_received"]
-    ).catch((err) => {
-      console.error("subscribeNotifications error:", err);
-    });
+    request
+      .onPaid((payment) => {
+        console.log("Payment confirmed for:", ph.slice(0, 12));
+        paymentStatus.set(ph, true);
+      })
+      .onTimeout(600, () => {
+        console.log("Invoice expired for:", ph.slice(0, 12));
+        paymentStatus.delete(ph);
+      });
 
-    res.json({ invoice: result.invoice, paymentHash: ph });
+    res.json({ invoice: bolt11, paymentHash: ph });
   } catch (err) {
     console.error("Invoice creation error:", err);
     const msg = err instanceof Error ? err.message : "Unknown error";
