@@ -3,6 +3,7 @@ import { AnimatePresence } from "framer-motion";
 import { Header } from "@/components/Header";
 import { PresidentSelector } from "@/components/PresidentSelector";
 import { DilemmaForm } from "@/components/DilemmaForm";
+import { PaymentStep } from "@/components/PaymentStep";
 import { GeneratingState } from "@/components/GeneratingState";
 import { DocumentResult } from "@/components/DocumentResult";
 import { useOrderFlow } from "@/hooks/use-order-flow";
@@ -14,10 +15,14 @@ export default function Home() {
     dilemma,
     setDilemma,
     isGenerating,
+    isCreatingInvoice,
+    invoice,
+    paymentHash,
     result,
     handleSelectPresident,
     handleBack,
     submitDilemma,
+    onPaymentConfirmed,
     reset,
   } = useOrderFlow();
 
@@ -50,7 +55,17 @@ export default function Home() {
                 onChange={setDilemma}
                 onSubmit={submitDilemma}
                 onBack={handleBack}
-                isGenerating={isGenerating}
+                isGenerating={isCreatingInvoice}
+              />
+            )}
+
+            {step === "PAYMENT" && invoice && paymentHash && (
+              <PaymentStep
+                key="payment"
+                invoice={invoice}
+                paymentHash={paymentHash}
+                onPaid={onPaymentConfirmed}
+                onBack={handleBack}
               />
             )}
 

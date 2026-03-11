@@ -5,13 +5,16 @@ import type { GenerateOrderRequestPresident, GenerateOrderResponse } from "@work
 import { useToast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
 
-export type FlowStep = "SELECT_PRESIDENT" | "WRITE_DILEMMA" | "GENERATING" | "RESULT";
+export type FlowStep = "SELECT_PRESIDENT" | "WRITE_DILEMMA" | "PAYMENT" | "GENERATING" | "RESULT";
 
 export function useOrderFlow() {
   const [step, setStep] = useState<FlowStep>("SELECT_PRESIDENT");
   const [selectedPresident, setSelectedPresident] = useState<GenerateOrderRequestPresident | null>(null);
   const [dilemma, setDilemma] = useState("");
   const [result, setResult] = useState<GenerateOrderResponse | null>(null);
+  const [invoice, setInvoice] = useState<string | null>(null);
+  const [paymentHash, setPaymentHash] = useState<string | null>(null);
+  const [isCreatingInvoice, setIsCreatingInvoice] = useState(false);
   const [, navigate] = useLocation();
 
   const { toast } = useToast();
@@ -26,6 +29,10 @@ export function useOrderFlow() {
     if (step === "WRITE_DILEMMA") {
       setStep("SELECT_PRESIDENT");
       setSelectedPresident(null);
+    } else if (step === "PAYMENT") {
+      setStep("WRITE_DILEMMA");
+      setInvoice(null);
+      setPaymentHash(null);
     } else if (step === "RESULT") {
       setStep("SELECT_PRESIDENT");
       setSelectedPresident(null);
@@ -71,32 +78,52 @@ export function useOrderFlow() {
       return;
     }
 
+    setIsCreatingInvoice(true);
+    try {
+      const res = await fetch("/api/executive-orders/invoice", { method: "POST" });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error ?? "Failed to create invoice");
+      }
+      const data = await res.json();
+      setInvoice(data.invoice);
+      setPaymentHash(data.paymentHash);
+      setStep("PAYMENT");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Could not create payment invoice.";
+      toast({
+        title: "Payment Setup Failed",
+        description: msg,
+        variant: "destructive"
+      });
+    } finally {
+      setIsCreatingInvoice(false);
+    }
+  };
+
+  const onPaymentConfirmed = async () => {
     setStep("GENERATING");
 
     try {
       const response = await generateMutation.mutateAsync({
         data: {
-          president: selectedPresident,
+          president: selectedPresident!,
           dilemma: dilemma.trim()
         }
       });
 
       setResult(response);
       setStep("RESULT");
-
-      // Navigate to the permalink URL
       navigate(`/order/${response.id}`);
-
-      // Delay confetti slightly for dramatic effect
       setTimeout(fireConfetti, 500);
 
-    } catch (error) {
+    } catch {
       toast({
         title: "Bureaucratic Error",
         description: "The Oval Office could not process your request at this time.",
         variant: "destructive"
       });
-      setStep("WRITE_DILEMMA");
+      setStep("PAYMENT");
     }
   };
 
@@ -106,10 +133,14 @@ export function useOrderFlow() {
     dilemma,
     setDilemma,
     result,
+    invoice,
+    paymentHash,
     isGenerating: generateMutation.isPending,
+    isCreatingInvoice,
     handleSelectPresident,
     handleBack,
     submitDilemma,
+    onPaymentConfirmed,
     reset: handleBack
   };
 }

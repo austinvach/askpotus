@@ -4,6 +4,13 @@ import { openai } from "@workspace/integrations-openai-ai-server";
 import { GenerateExecutiveOrderBody } from "@workspace/api-zod";
 import { db, executiveOrdersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { NWCClient } from "@getalby/sdk";
+
+function getNWCClient(): NWCClient {
+  const url = process.env.NWC_URL;
+  if (!url) throw new Error("NWC_URL not configured");
+  return new NWCClient({ nostrWalletConnectUrl: url });
+}
 
 const router: IRouter = Router();
 
@@ -43,6 +50,36 @@ before coming back to the main point. Reference your son Beau with reverence. Be
 Sign off as "Joseph R. Biden Jr., President of the United States."`,
   },
 };
+
+router.post("/executive-orders/invoice", async (req, res) => {
+  try {
+    const client = getNWCClient();
+    const result = await client.makeInvoice({
+      amount: 10_000,
+      description: "Executive Order — 10 sats",
+    });
+    await client.close();
+    res.json({ invoice: result.invoice, paymentHash: result.payment_hash });
+  } catch (err) {
+    console.error("Invoice creation error:", err);
+    const msg = err instanceof Error ? err.message : "Unknown error";
+    res.status(500).json({ error: msg.includes("NWC_URL") ? "Payment not configured" : "Failed to create invoice" });
+  }
+});
+
+router.get("/executive-orders/invoice/:paymentHash", async (req, res) => {
+  try {
+    const client = getNWCClient();
+    const result = await client.lookupInvoice({
+      payment_hash: req.params.paymentHash,
+    });
+    await client.close();
+    res.json({ paid: result.settled_at != null });
+  } catch (err) {
+    console.error("Payment check error:", err);
+    res.status(500).json({ error: "Failed to check payment" });
+  }
+});
 
 router.post("/executive-orders/generate", async (req, res) => {
   try {
