@@ -2,7 +2,8 @@ import React from "react";
 import { motion } from "framer-motion";
 import { GenerateOrderRequestPresident } from "@workspace/api-client-react/src/generated/api.schemas";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, PenTool } from "lucide-react";
+import { ArrowLeft, PenTool, Zap, Loader2 } from "lucide-react";
+import type { PaymentState } from "@/hooks/use-order-flow";
 
 interface DilemmaFormProps {
   president: GenerateOrderRequestPresident;
@@ -10,7 +11,9 @@ interface DilemmaFormProps {
   onChange: (val: string) => void;
   onSubmit: () => void;
   onBack: () => void;
-  isGenerating: boolean;
+  onCancelPayment: () => void;
+  paymentState: PaymentState;
+  paymentError: string | null;
 }
 
 const PRESIDENT_LAST_NAMES: Record<GenerateOrderRequestPresident, string> = {
@@ -20,15 +23,34 @@ const PRESIDENT_LAST_NAMES: Record<GenerateOrderRequestPresident, string> = {
   [GenerateOrderRequestPresident.biden]: "Biden",
 };
 
+function getButtonContent(paymentState: PaymentState) {
+  switch (paymentState) {
+    case "creating_invoice":
+      return { text: "Preparing Payment...", icon: <Loader2 className="w-5 h-5 animate-spin" /> };
+    case "awaiting_payment":
+      return { text: "Complete Payment (10 sats)", icon: <Zap className="w-5 h-5" /> };
+    case "verifying":
+      return { text: "Verifying Payment...", icon: <Loader2 className="w-5 h-5 animate-spin" /> };
+    case "paid":
+      return { text: "Payment Confirmed!", icon: <Zap className="w-5 h-5" /> };
+    default:
+      return { text: "ISSUE EXECUTIVE ORDER", icon: <PenTool className="w-5 h-5" /> };
+  }
+}
+
 export function DilemmaForm({
   president,
   dilemma,
   onChange,
   onSubmit,
   onBack,
-  isGenerating,
+  onCancelPayment,
+  paymentState,
+  paymentError,
 }: DilemmaFormProps) {
   const lastName = PRESIDENT_LAST_NAMES[president];
+  const busy = paymentState !== "idle";
+  const { text, icon } = getButtonContent(paymentState);
 
   return (
     <motion.div
@@ -39,12 +61,12 @@ export function DilemmaForm({
       className="w-full max-w-2xl mx-auto bg-white rounded-3xl p-8 md:p-12 box-shadow-document relative paper-texture overflow-hidden"
     >
       <button
-        onClick={onBack}
-        disabled={isGenerating}
+        onClick={busy ? onCancelPayment : onBack}
+        disabled={paymentState === "verifying" || paymentState === "paid"}
         className="absolute top-6 left-6 md:top-8 md:left-8 z-10 text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 text-sm font-semibold tracking-wide disabled:opacity-50"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back
+        {busy ? "Cancel" : "Back"}
       </button>
 
       <div className="paper-content">
@@ -53,8 +75,7 @@ export function DilemmaForm({
             Petition to the Oval Office
           </p>
           <h2 className="text-3xl md:text-4xl font-display text-primary leading-tight">
-            What Requires the Attention of
-            <br />
+            What Requires the Attention of 
             President {lastName}?
           </h2>
         </div>
@@ -65,30 +86,60 @@ export function DilemmaForm({
             <Textarea
               value={dilemma}
               onChange={(e) => onChange(e.target.value)}
-              placeholder="e.g. Should I quit my job to become a professional vibe-coder?"
+              placeholder="Should I quit my job and vibe code full-time?"
               className="relative w-full text-lg md:text-xl font-serif p-6 min-h-[160px] bg-background/50 border-2 border-border rounded-xl focus-visible:ring-accent focus-visible:border-accent transition-all resize-none shadow-inner"
-              disabled={isGenerating}
+              disabled={busy}
             />
           </div>
 
-          <div className="flex justify-center pt-4">
+          <div className="flex flex-col items-center gap-3 pt-4">
             <button
               onClick={onSubmit}
-              disabled={!dilemma.trim() || isGenerating}
+              disabled={!dilemma.trim() || busy}
               className="relative overflow-hidden group px-10 py-5 bg-primary text-white rounded-full font-display font-bold text-lg md:text-xl shadow-[0_10px_20px_-10px_rgba(10,49,97,0.5)] hover:shadow-[0_20px_25px_-5px_rgba(10,49,97,0.4)] hover:-translate-y-1 transition-all duration-300 disabled:opacity-60 disabled:pointer-events-none disabled:transform-none"
             >
               <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
               <span className="flex items-center gap-3 relative z-10">
-                {isGenerating ? (
-                  <>Drafting Order...</>
-                ) : (
-                  <>
-                    <PenTool className="w-5 h-5" />
-                    ISSUE EXECUTIVE ORDER
-                  </>
-                )}
+                {icon}
+                {text}
               </span>
             </button>
+
+            {paymentState === "awaiting_payment" && (
+              <motion.p
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-xs text-muted-foreground/60 font-serif"
+              >
+                Waiting for payment
+                <span className="inline-flex gap-0.5 ml-1">
+                  {[0, 1, 2].map((i) => (
+                    <motion.span
+                      key={i}
+                      animate={{ opacity: [0.3, 1, 0.3] }}
+                      transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
+                    >
+                      .
+                    </motion.span>
+                  ))}
+                </span>
+              </motion.p>
+            )}
+
+            {paymentError && (
+              <motion.p
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-sm text-destructive font-serif text-center"
+              >
+                {paymentError}
+              </motion.p>
+            )}
+
+            <p className="text-xs text-muted-foreground/50 font-serif flex items-center gap-1.5">
+              <Zap className="w-3 h-3" />
+              10 sat Lightning filing fee
+            </p>
           </div>
         </div>
       </div>
