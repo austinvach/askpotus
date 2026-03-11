@@ -78,8 +78,9 @@ export default function OrderPage() {
         </main>
       </div>
 
-      <footer className="w-full py-6 text-center text-muted-foreground/60 font-serif text-sm relative z-10">
+      <footer className="w-full py-6 text-center text-muted-foreground/60 font-serif text-sm relative z-10 space-y-1">
         <p>For entertainment purposes only. Not legally binding in any jurisdiction.</p>
+        <p>Vibed by <a href="https://austinvach.com" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-muted-foreground transition-colors">Austin</a></p>
       </footer>
     </div>
   );

@@ -20,7 +20,7 @@ export function Header() {
         EXECUTIVE ORDERS
       </h1>
       <p className="text-muted-foreground font-serif italic max-w-lg text-lg">
-        Definitive resolutions to your most pressing personal dilemmas, decreed by the highest office.
+        Definitive answers to your personal dilemmas, issued by the President of the United States.
       </p>
       
       <div className="flex items-center justify-center gap-4 mt-8 w-full max-w-md">
