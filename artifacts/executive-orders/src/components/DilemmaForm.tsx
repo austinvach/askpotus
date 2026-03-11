@@ -1,0 +1,88 @@
+import React from 'react';
+import { motion } from 'framer-motion';
+import { GenerateOrderRequestPresident } from '@workspace/api-client-react/src/generated/api.schemas';
+import { Textarea } from '@/components/ui/textarea';
+import { ArrowLeft, PenTool } from 'lucide-react';
+
+interface DilemmaFormProps {
+  president: GenerateOrderRequestPresident;
+  dilemma: string;
+  onChange: (val: string) => void;
+  onSubmit: () => void;
+  onBack: () => void;
+  isGenerating: boolean;
+}
+
+const PRESIDENT_NAMES: Record<GenerateOrderRequestPresident, string> = {
+  [GenerateOrderRequestPresident.george_w_bush]: "George W. Bush",
+  [GenerateOrderRequestPresident.obama]: "Barack Obama",
+  [GenerateOrderRequestPresident.trump]: "Donald Trump",
+  [GenerateOrderRequestPresident.biden]: "Joe Biden",
+};
+
+export function DilemmaForm({ president, dilemma, onChange, onSubmit, onBack, isGenerating }: DilemmaFormProps) {
+  const name = PRESIDENT_NAMES[president];
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      className="w-full max-w-2xl mx-auto bg-white rounded-3xl p-8 md:p-12 box-shadow-document relative paper-texture overflow-hidden"
+    >
+      <div className="paper-content">
+        <button 
+          onClick={onBack}
+          disabled={isGenerating}
+          className="absolute top-6 left-6 md:top-8 md:left-8 text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 text-sm font-semibold tracking-wide disabled:opacity-50"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </button>
+
+        <div className="text-center mt-8 mb-10">
+          <p className="text-secondary font-bold tracking-widest text-xs uppercase mb-3">
+            Petition to the Oval Office
+          </p>
+          <h2 className="text-3xl md:text-4xl font-display text-primary leading-tight">
+            What requires the attention of <br className="hidden md:block"/> {name}?
+          </h2>
+        </div>
+
+        <div className="space-y-6">
+          <div className="relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-500"></div>
+            <Textarea
+              value={dilemma}
+              onChange={(e) => onChange(e.target.value)}
+              placeholder="e.g., Should I order pizza or make a salad tonight? Should I quit my job to become a professional juggler?"
+              className="relative w-full text-lg md:text-xl font-serif p-6 min-h-[160px] bg-background/50 border-2 border-border rounded-xl focus-visible:ring-accent focus-visible:border-accent transition-all resize-none shadow-inner"
+              disabled={isGenerating}
+            />
+          </div>
+
+          <div className="flex justify-center pt-4">
+            <button
+              onClick={onSubmit}
+              disabled={!dilemma.trim() || isGenerating}
+              className="relative overflow-hidden group px-10 py-5 bg-primary text-white rounded-full font-display font-bold text-lg md:text-xl shadow-[0_10px_20px_-10px_rgba(10,49,97,0.5)] hover:shadow-[0_20px_25px_-5px_rgba(10,49,97,0.4)] hover:-translate-y-1 transition-all duration-300 disabled:opacity-60 disabled:pointer-events-none disabled:transform-none"
+            >
+              <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+              <span className="flex items-center gap-3 relative z-10">
+                {isGenerating ? (
+                  <>Drafting Order...</>
+                ) : (
+                  <>
+                    <PenTool className="w-5 h-5" />
+                    ISSUE EXECUTIVE ORDER
+                  </>
+                )}
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}

@@ -8,3 +8,36 @@
 export interface HealthStatus {
   status: string;
 }
+
+/**
+ * The president to impersonate
+ */
+export type GenerateOrderRequestPresident =
+  (typeof GenerateOrderRequestPresident)[keyof typeof GenerateOrderRequestPresident];
+
+export const GenerateOrderRequestPresident = {
+  george_w_bush: "george_w_bush",
+  obama: "obama",
+  trump: "trump",
+  biden: "biden",
+} as const;
+
+export interface GenerateOrderRequest {
+  /** The president to impersonate */
+  president: GenerateOrderRequestPresident;
+  /** The decision or dilemma the user needs help with */
+  dilemma: string;
+}
+
+export interface GenerateOrderResponse {
+  /** A fake executive order number */
+  orderNumber: string;
+  /** The title of the executive order */
+  title: string;
+  /** The full text of the executive order */
+  body: string;
+  /** The president who issued the order */
+  president: string;
+  /** The date of the order */
+  date: string;
+}

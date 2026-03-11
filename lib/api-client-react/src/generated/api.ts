@@ -5,18 +5,25 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type {
+  GenerateOrderRequest,
+  GenerateOrderResponse,
+  HealthStatus,
+} from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
-import type { ErrorType } from "../custom-fetch";
+import type { ErrorType, BodyType } from "../custom-fetch";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -99,3 +106,90 @@ export function useHealthCheck<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * Generates a mock executive order in the style of the chosen president
+ * @summary Generate a presidential executive order
+ */
+export const getGenerateExecutiveOrderUrl = () => {
+  return `/api/executive-orders/generate`;
+};
+
+export const generateExecutiveOrder = async (
+  generateOrderRequest: GenerateOrderRequest,
+  options?: RequestInit,
+): Promise<GenerateOrderResponse> => {
+  return customFetch<GenerateOrderResponse>(getGenerateExecutiveOrderUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(generateOrderRequest),
+  });
+};
+
+export const getGenerateExecutiveOrderMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateExecutiveOrder>>,
+    TError,
+    { data: BodyType<GenerateOrderRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof generateExecutiveOrder>>,
+  TError,
+  { data: BodyType<GenerateOrderRequest> },
+  TContext
+> => {
+  const mutationKey = ["generateExecutiveOrder"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof generateExecutiveOrder>>,
+    { data: BodyType<GenerateOrderRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return generateExecutiveOrder(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GenerateExecutiveOrderMutationResult = NonNullable<
+  Awaited<ReturnType<typeof generateExecutiveOrder>>
+>;
+export type GenerateExecutiveOrderMutationBody = BodyType<GenerateOrderRequest>;
+export type GenerateExecutiveOrderMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Generate a presidential executive order
+ */
+export const useGenerateExecutiveOrder = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateExecutiveOrder>>,
+    TError,
+    { data: BodyType<GenerateOrderRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof generateExecutiveOrder>>,
+  TError,
+  { data: BodyType<GenerateOrderRequest> },
+  TContext
+> => {
+  return useMutation(getGenerateExecutiveOrderMutationOptions(options));
+};

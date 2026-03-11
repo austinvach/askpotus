@@ -14,3 +14,24 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * Generates a mock executive order in the style of the chosen president
+ * @summary Generate a presidential executive order
+ */
+export const GenerateExecutiveOrderBody = zod.object({
+  president: zod
+    .enum(["george_w_bush", "obama", "trump", "biden"])
+    .describe("The president to impersonate"),
+  dilemma: zod
+    .string()
+    .describe("The decision or dilemma the user needs help with"),
+});
+
+export const GenerateExecutiveOrderResponse = zod.object({
+  orderNumber: zod.string().describe("A fake executive order number"),
+  title: zod.string().describe("The title of the executive order"),
+  body: zod.string().describe("The full text of the executive order"),
+  president: zod.string().describe("The president who issued the order"),
+  date: zod.string().describe("The date of the order"),
+});

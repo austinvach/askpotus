@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: executive-orders
+    description: Presidential Executive Order generation
 paths:
   /healthz:
     get:
@@ -24,6 +26,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /executive-orders/generate:
+    post:
+      operationId: generateExecutiveOrder
+      tags: [executive-orders]
+      summary: Generate a presidential executive order
+      description: Generates a mock executive order in the style of the chosen president
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateOrderRequest"
+      responses:
+        "200":
+          description: Generated executive order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateOrderResponse"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +54,40 @@ components:
           type: string
       required:
         - status
-
+    GenerateOrderRequest:
+      type: object
+      properties:
+        president:
+          type: string
+          enum: [george_w_bush, obama, trump, biden]
+          description: The president to impersonate
+        dilemma:
+          type: string
+          description: The decision or dilemma the user needs help with
+      required:
+        - president
+        - dilemma
+    GenerateOrderResponse:
+      type: object
+      properties:
+        orderNumber:
+          type: string
+          description: A fake executive order number
+        title:
+          type: string
+          description: The title of the executive order
+        body:
+          type: string
+          description: The full text of the executive order
+        president:
+          type: string
+          description: The president who issued the order
+        date:
+          type: string
+          description: The date of the order
+      required:
+        - orderNumber
+        - title
+        - body
+        - president
+        - date

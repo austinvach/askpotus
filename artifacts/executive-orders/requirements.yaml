@@ -1,0 +1,28 @@
+packages:
+  "framer-motion": "For elegant document reveal animations and state transitions"
+  "canvas-confetti": "For a patriotic celebration effect on generation"
+  "@types/canvas-confetti": "Types for canvas-confetti"
+
+images:
+  - path: "artifacts/executive-orders/public/images/seal.png"
+    description: "A highly detailed, official-looking mock presidential seal featuring an eagle holding arrows and olive branches, gold and navy blue, flat vector style, transparent background"
+    aspect_ratio: "1:1"
+  - path: "artifacts/executive-orders/public/images/parchment.png"
+    description: "A subtle, high-quality seamless texture of aged cream-colored parchment paper, soft lighting, no harsh shadows"
+    aspect_ratio: "16:9"
+  - path: "artifacts/executive-orders/public/images/bush.png"
+    description: "An official presidential portrait painting of George W. Bush in a dark suit, dignified, American flag subtly in the background, classic oil painting style"
+    aspect_ratio: "3:4"
+  - path: "artifacts/executive-orders/public/images/obama.png"
+    description: "An official presidential portrait painting of Barack Obama in a dark suit, dignified, American flag subtly in the background, classic oil painting style"
+    aspect_ratio: "3:4"
+  - path: "artifacts/executive-orders/public/images/trump.png"
+    description: "An official presidential portrait painting of Donald Trump in a dark suit with a red tie, dignified, American flag subtly in the background, classic oil painting style"
+    aspect_ratio: "3:4"
+  - path: "artifacts/executive-orders/public/images/biden.png"
+    description: "An official presidential portrait painting of Joe Biden in a dark suit, dignified, American flag subtly in the background, classic oil painting style"
+    aspect_ratio: "3:4"
+
+notes:
+  - "The app relies on the pre-generated API client from @workspace/api-client-react for the /api/executive-orders/generate endpoint."
+  - "We use framer-motion for complex page transitions to give the app a polished, high-end feel."
