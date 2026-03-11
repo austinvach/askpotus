@@ -58,7 +58,7 @@ export function PaymentStep({ invoice, paymentHash, onPaid, onBack }: PaymentSte
       const verifyRes = await fetch("/api/executive-orders/verify-preimage", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ preimage: result.preimage, paymentHash }),
+        body: JSON.stringify({ preimage: result.preimage, invoice }),
       });
       const { paid } = await verifyRes.json();
       if (paid) {

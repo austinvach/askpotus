@@ -1,15 +1,21 @@
 import { Router, type IRouter } from "express";
-import { randomUUID, createHash } from "crypto";
+import { randomUUID } from "crypto";
 import { openai } from "@workspace/integrations-openai-ai-server";
 import { GenerateExecutiveOrderBody } from "@workspace/api-zod";
 import { db, executiveOrdersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { NWCClient } from "@getalby/sdk";
+import { Invoice } from "@getalby/lightning-tools";
 
+const paymentStatus = new Map<string, boolean>();
+
+let nwcClient: NWCClient | null = null;
 function getNWCClient(): NWCClient {
+  if (nwcClient) return nwcClient;
   const url = process.env.NWC_URL;
   if (!url) throw new Error("NWC_URL not configured");
-  return new NWCClient({ nostrWalletConnectUrl: url });
+  nwcClient = new NWCClient({ nostrWalletConnectUrl: url });
+  return nwcClient;
 }
 
 const router: IRouter = Router();
@@ -58,8 +64,23 @@ router.post("/executive-orders/invoice", async (req, res) => {
       amount: 10_000,
       description: "Executive Order — 10 sats",
     });
-    await client.close();
-    res.json({ invoice: result.invoice, paymentHash: result.payment_hash });
+    const ph = result.payment_hash;
+    paymentStatus.set(ph, false);
+
+    client.subscribeNotifications(
+      (notification) => {
+        const tx = notification.notification;
+        if (tx.payment_hash === ph) {
+          console.log("Payment notification received for:", ph.slice(0, 12));
+          paymentStatus.set(ph, true);
+        }
+      },
+      ["payment_received"]
+    ).catch((err) => {
+      console.error("subscribeNotifications error:", err);
+    });
+
+    res.json({ invoice: result.invoice, paymentHash: ph });
   } catch (err) {
     console.error("Invoice creation error:", err);
     const msg = err instanceof Error ? err.message : "Unknown error";
@@ -67,34 +88,25 @@ router.post("/executive-orders/invoice", async (req, res) => {
   }
 });
 
-router.get("/executive-orders/invoice/:paymentHash", async (req, res) => {
-  try {
-    const client = getNWCClient();
-    const { transactions } = await client.listTransactions({ type: "incoming", limit: 50 });
-    await client.close();
-    const match = transactions.find(
-      (t: Record<string, unknown>) => t.payment_hash === req.params.paymentHash
-    );
-    const paid = !!match;
-    if (paid) console.log("Payment confirmed for hash:", req.params.paymentHash.slice(0, 12));
-    res.json({ paid });
-  } catch (err) {
-    console.error("Payment check error:", err);
-    res.status(500).json({ error: "Failed to check payment" });
-  }
+router.get("/executive-orders/invoice/:paymentHash", (_req, res) => {
+  const paid = paymentStatus.get(_req.params.paymentHash) === true;
+  res.json({ paid });
 });
 
 router.post("/executive-orders/verify-preimage", (req, res) => {
   try {
-    const { preimage, paymentHash } = req.body as { preimage?: string; paymentHash?: string };
-    if (!preimage || !paymentHash) {
-      res.status(400).json({ error: "Missing preimage or paymentHash" });
+    const { preimage, invoice: invoiceStr } = req.body as { preimage?: string; invoice?: string };
+    if (!preimage || !invoiceStr) {
+      res.status(400).json({ error: "Missing preimage or invoice" });
       return;
     }
-    const hash = createHash("sha256").update(Buffer.from(preimage, "hex")).digest("hex");
-    const paid = hash === paymentHash;
-    console.log("preimage verify:", preimage.slice(0, 8), "hash:", hash.slice(0, 8), "expected:", paymentHash.slice(0, 8), "paid:", paid);
-    res.json({ paid });
+    const inv = new Invoice({ pr: invoiceStr });
+    const valid = inv.validatePreimage(preimage);
+    if (valid) {
+      paymentStatus.set(inv.paymentHash, true);
+    }
+    console.log("preimage verify:", valid, "hash:", inv.paymentHash.slice(0, 12));
+    res.json({ paid: valid });
   } catch (err) {
     console.error("Preimage verify error:", err);
     res.status(500).json({ error: "Verification failed" });

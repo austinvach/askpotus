@@ -166,6 +166,9 @@ importers:
 
   artifacts/api-server:
     dependencies:
+      '@getalby/lightning-tools':
+        specifier: ^7.0.2
+        version: 7.0.2
       '@getalby/sdk':
         specifier: ^7.0.0
         version: 7.0.0(typescript@5.9.3)
@@ -785,6 +788,10 @@ packages:
 
   '@getalby/lightning-tools@6.1.0':
     resolution: {integrity: sha512-rGurar9X4Gm+9xwoNYS8s9YLK7ZYqvbqv4KbHLYV0LEeB0HxZHRgmxblGqg+fYfp6iiYHx+edIgUpt9rS3VwFw==}
+    engines: {node: '>=14'}
+
+  '@getalby/lightning-tools@7.0.2':
+    resolution: {integrity: sha512-3jzXk9QgeiuSTr4X1DSg3n/YYC5ju93ZPs+4tE/DIOJA6rbDaWZ8yVLF81neqtcHOrguQirBaM1MD6ZjYPIUHA==}
     engines: {node: '>=14'}
 
   '@getalby/sdk@7.0.0':
@@ -3300,6 +3307,8 @@ snapshots:
       '@shikijs/vscode-textmate': 10.0.2
 
   '@getalby/lightning-tools@6.1.0': {}
+
+  '@getalby/lightning-tools@7.0.2': {}
 
   '@getalby/sdk@7.0.0(typescript@5.9.3)':
     dependencies:
