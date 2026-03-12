@@ -133,37 +133,38 @@ export function useOrderFlow() {
       const bolt11 = request.invoice.paymentRequest;
       setPaymentState("awaiting_payment");
 
-      const paymentPromise = new Promise<void>((resolve) => {
-        request
-          .onPaid(() => {
-            console.log("Payment confirmed!");
-            resolve();
-          })
-          .onTimeout(600, () => {
-            console.log("Invoice expired");
-          });
-      });
-
-      unsubRef.current = () => request.unsubscribe();
-
       const hasWebLN = typeof window !== "undefined" && "webln" in window;
       if (hasWebLN) {
-        try {
-          await window.webln!.enable();
-          window.webln!.sendPayment(bolt11).catch(() => {});
-        } catch {}
+        await window.webln!.enable();
+        await window.webln!.sendPayment(bolt11);
+        console.log("WebLN payment confirmed!");
       } else {
+        const paymentPromise = new Promise<void>((resolve, reject) => {
+          request
+            .onPaid(() => {
+              console.log("Payment confirmed via NWC!");
+              resolve();
+            })
+            .onTimeout(600, () => {
+              reject(new Error("Invoice expired. Please try again."));
+            });
+        });
+        unsubRef.current = () => request.unsubscribe();
         window.open(`lightning:${bolt11}`, "_self");
+        await paymentPromise;
       }
 
-      await paymentPromise;
       setPaymentState("paid");
       await generateOrder();
 
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Payment failed.";
-      setPaymentError(msg);
-      setPaymentState("idle");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.toLowerCase().includes("cancel") || msg.toLowerCase().includes("abort") || msg.toLowerCase().includes("rejected")) {
+        setPaymentState("idle");
+      } else {
+        setPaymentError(msg || "Payment failed.");
+        setPaymentState("idle");
+      }
     }
   };
 
