@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import { Link } from "wouter";
 
 interface HeaderProps {
@@ -10,9 +9,7 @@ export function Header({ compact = false }: HeaderProps) {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 40);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
@@ -21,29 +18,22 @@ export function Header({ compact = false }: HeaderProps) {
   const isSmall = compact || scrolled;
 
   return (
-    <motion.header
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, ease: "easeOut" }}
-      className={[
-        "sticky top-[8px] z-50 w-full flex justify-center px-4 transition-all duration-500",
-        isSmall ? "py-1" : "py-4",
-      ].join(" ")}
-    >
+    <header className="fixed top-0 left-0 right-0 z-50">
+      <div className="h-2 w-full bg-gradient-to-r from-primary via-secondary to-primary" />
       <div
-        className={[
-          "flex items-center justify-center rounded-full transition-all duration-500",
-          isSmall
-            ? "bg-[#1a3a5c] shadow-lg px-3 py-1.5"
-            : "bg-transparent px-0 py-0",
-        ].join(" ")}
+        className="w-full flex justify-center transition-all duration-500"
+        style={{
+          backgroundColor: isSmall ? "#1a3a5c" : "transparent",
+          padding: isSmall ? "8px 0" : "16px 0",
+        }}
       >
         <Link
           href="/"
-          className={[
-            "relative block transition-all duration-500 hover:scale-105",
-            isSmall ? "w-10 h-10 md:w-14 md:h-14" : "w-20 h-20 md:w-28 md:h-28",
-          ].join(" ")}
+          className="block transition-all duration-500 hover:opacity-90"
+          style={{
+            width: isSmall ? "48px" : "96px",
+            height: isSmall ? "48px" : "96px",
+          }}
         >
           <img
             src={`${import.meta.env.BASE_URL}images/seal.svg`}
@@ -52,6 +42,6 @@ export function Header({ compact = false }: HeaderProps) {
           />
         </Link>
       </div>
-    </motion.header>
+    </header>
   );
 }
