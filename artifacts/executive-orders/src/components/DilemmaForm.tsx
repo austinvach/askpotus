@@ -26,9 +26,9 @@ const PRESIDENT_LAST_NAMES: Record<GenerateOrderRequestPresident, string> = {
 function getButtonContent(paymentState: PaymentState) {
   switch (paymentState) {
     case "creating_invoice":
-      return { text: "Preparing Payment...", icon: <Loader2 className="w-5 h-5 animate-spin" /> };
-    case "awaiting_payment":
-      return { text: "Complete Payment (10 sats)", icon: <Zap className="w-5 h-5" /> };
+      return { text: "Preparing...", icon: <Loader2 className="w-5 h-5 animate-spin" /> };
+    case "paying":
+      return { text: "Processing Payment...", icon: <Loader2 className="w-5 h-5 animate-spin" /> };
     case "paid":
       return { text: "Payment Confirmed!", icon: <Zap className="w-5 h-5" /> };
     default:
@@ -102,27 +102,6 @@ export function DilemmaForm({
                 {text}
               </span>
             </button>
-
-            {paymentState === "awaiting_payment" && (
-              <motion.p
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-xs text-muted-foreground/60 font-serif"
-              >
-                Waiting for payment
-                <span className="inline-flex gap-0.5 ml-1">
-                  {[0, 1, 2].map((i) => (
-                    <motion.span
-                      key={i}
-                      animate={{ opacity: [0.3, 1, 0.3] }}
-                      transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2 }}
-                    >
-                      .
-                    </motion.span>
-                  ))}
-                </span>
-              </motion.p>
-            )}
 
             {paymentError && (
               <motion.p

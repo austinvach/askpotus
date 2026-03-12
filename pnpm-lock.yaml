@@ -215,6 +215,9 @@ importers:
 
   artifacts/executive-orders:
     dependencies:
+      '@getalby/lightning-tools':
+        specifier: ^7.0.2
+        version: 7.0.2
       '@getalby/sdk':
         specifier: ^7.0.0
         version: 7.0.0(typescript@5.9.3)

@@ -1,22 +1,16 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useGenerateExecutiveOrder } from "@workspace/api-client-react";
 import type { GenerateOrderRequestPresident, GenerateOrderResponse } from "@workspace/api-client-react/src/generated/api.schemas";
 import { useToast } from "@/hooks/use-toast";
 import { LN } from "@getalby/sdk";
+import { LightningAddress } from "@getalby/lightning-tools";
 import confetti from "canvas-confetti";
 
 export type FlowStep = "SELECT_PRESIDENT" | "WRITE_DILEMMA" | "GENERATING" | "RESULT";
-export type PaymentState = "idle" | "creating_invoice" | "awaiting_payment" | "paid";
+export type PaymentState = "idle" | "creating_invoice" | "paying" | "paid";
 
-declare global {
-  interface Window {
-    webln?: {
-      enable: () => Promise<void>;
-      sendPayment: (invoice: string) => Promise<{ preimage: string }>;
-    };
-  }
-}
+const LIGHTNING_ADDRESS = "austinvach@cash.app";
 
 let lnClient: LN | null = null;
 
@@ -36,7 +30,6 @@ export function useOrderFlow() {
   const [result, setResult] = useState<GenerateOrderResponse | null>(null);
   const [paymentState, setPaymentState] = useState<PaymentState>("idle");
   const [paymentError, setPaymentError] = useState<string | null>(null);
-  const unsubRef = useRef<(() => void) | null>(null);
   const [, navigate] = useLocation();
 
   const { toast } = useToast();
@@ -53,7 +46,6 @@ export function useOrderFlow() {
       setSelectedPresident(null);
       setPaymentState("idle");
       setPaymentError(null);
-      unsubRef.current?.();
     } else if (step === "RESULT") {
       setStep("SELECT_PRESIDENT");
       setSelectedPresident(null);
@@ -125,52 +117,29 @@ export function useOrderFlow() {
     setPaymentState("creating_invoice");
 
     try {
+      const lnAddress = new LightningAddress(LIGHTNING_ADDRESS);
+      await lnAddress.fetch();
+      const invoiceObj = await lnAddress.requestInvoice({ satoshi: 10 });
+      console.log("Invoice fetched from", LIGHTNING_ADDRESS);
+
+      setPaymentState("paying");
+
       const ln = await getLNClient();
-      const request = await ln.requestPayment({ satoshi: 10 }, {
-        description: "Executive Order — 10 sats",
-      });
-
-      const bolt11 = request.invoice.paymentRequest;
-      setPaymentState("awaiting_payment");
-
-      const hasWebLN = typeof window !== "undefined" && "webln" in window;
-      if (hasWebLN) {
-        await window.webln!.enable();
-        await window.webln!.sendPayment(bolt11);
-        console.log("WebLN payment confirmed!");
-      } else {
-        const paymentPromise = new Promise<void>((resolve, reject) => {
-          request
-            .onPaid(() => {
-              console.log("Payment confirmed via NWC!");
-              resolve();
-            })
-            .onTimeout(600, () => {
-              reject(new Error("Invoice expired. Please try again."));
-            });
-        });
-        unsubRef.current = () => request.unsubscribe();
-        window.open(`lightning:${bolt11}`, "_self");
-        await paymentPromise;
-      }
+      await ln.pay(invoiceObj.paymentRequest);
+      console.log("Payment sent to", LIGHTNING_ADDRESS);
 
       setPaymentState("paid");
       await generateOrder();
 
     } catch (err: unknown) {
+      console.error("Payment error:", err);
       const msg = err instanceof Error ? err.message : String(err);
-      if (msg.toLowerCase().includes("cancel") || msg.toLowerCase().includes("abort") || msg.toLowerCase().includes("rejected")) {
-        setPaymentState("idle");
-      } else {
-        setPaymentError(msg || "Payment failed.");
-        setPaymentState("idle");
-      }
+      setPaymentError(msg || "Payment failed.");
+      setPaymentState("idle");
     }
   };
 
   const cancelPayment = () => {
-    unsubRef.current?.();
-    unsubRef.current = null;
     setPaymentState("idle");
     setPaymentError(null);
   };
