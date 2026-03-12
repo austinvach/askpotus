@@ -1,6 +1,7 @@
 import React from "react";
 import { AnimatePresence } from "framer-motion";
 import { Header } from "@/components/Header";
+import { Hero } from "@/components/Hero";
 import { PresidentSelector } from "@/components/PresidentSelector";
 import { DilemmaForm } from "@/components/DilemmaForm";
 import { GeneratingState } from "@/components/GeneratingState";
@@ -33,7 +34,11 @@ export default function Home() {
       </div>
 
       <div className="flex-1 relative z-10 flex flex-col pt-4 md:pt-8">
-        {step !== "RESULT" && <Header />}
+        <Header />
+
+        <AnimatePresence>
+          {step === "SELECT_PRESIDENT" && <Hero key="hero" />}
+        </AnimatePresence>
 
         <main className="flex-1 w-full pt-6 flex flex-col items-center justify-start min-h-[500px]">
           <AnimatePresence mode="wait">

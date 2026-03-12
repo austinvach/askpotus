@@ -58,10 +58,8 @@ export default function OrderPage() {
               This executive order may have been classified, redacted, or never
               issued.
             </p>
-            <Link href="/">
-              <a className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-white rounded-full font-display font-bold hover:bg-primary/90 transition-all duration-300">
-                Issue a New Order
-              </a>
+            <Link href="/" className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-white rounded-full font-display font-bold hover:bg-primary/90 transition-all duration-300">
+              Issue a New Order
             </Link>
           </div>
         </div>
