@@ -20,11 +20,11 @@ export default function OrderPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col pt-4">
         <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
           <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary via-secondary to-primary" />
         </div>
-        <Header />
+        <Header compact />
         <div className="flex-1 flex items-center justify-center">
           <motion.div
             animate={{ opacity: [0.4, 1, 0.4] }}
@@ -43,11 +43,11 @@ export default function OrderPage() {
 
   if (isError || !order) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col pt-4">
         <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
           <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary via-secondary to-primary" />
         </div>
-        <Header />
+        <Header compact />
         <div className="flex-1 flex items-center justify-center px-4">
           <div className="text-center max-w-md">
             <div className="text-6xl mb-6">🏛️</div>
@@ -76,7 +76,7 @@ export default function OrderPage() {
       </div>
 
       <div className="flex-1 relative z-10 flex flex-col pt-4 md:pt-8">
-        <Header />
+        <Header compact />
         <main className="flex-1 w-full pb-16 pt-8 flex flex-col items-center">
           <DocumentResult result={order} isSharedView={true} />
         </main>

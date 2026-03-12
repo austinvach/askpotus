@@ -34,7 +34,7 @@ export default function Home() {
       </div>
 
       <div className="flex-1 relative z-10 flex flex-col pt-4 md:pt-8">
-        <Header />
+        <Header compact={step !== "SELECT_PRESIDENT"} />
 
         <AnimatePresence>
           {step === "SELECT_PRESIDENT" && <Hero key="hero" />}
