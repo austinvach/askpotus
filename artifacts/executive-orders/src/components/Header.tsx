@@ -5,34 +5,45 @@ interface HeaderProps {
   compact?: boolean;
 }
 
+const LARGE_SIZE = 96;
+const SMALL_SIZE = 48;
+const LARGE_PAD = 16;
+const SMALL_PAD = 8;
+const SCROLL_RANGE = 100;
+
 export function Header({ compact = false }: HeaderProps) {
-  const [scrolled, setScrolled] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
+    if (compact) return;
+    const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
+    setScrollY(window.scrollY);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [compact]);
 
-  const isSmall = compact || scrolled;
+  const progress = compact ? 1 : Math.min(scrollY / SCROLL_RANGE, 1);
+
+  const sealSize = LARGE_SIZE + (SMALL_SIZE - LARGE_SIZE) * progress;
+  const pad = LARGE_PAD + (SMALL_PAD - LARGE_PAD) * progress;
+  const navyOpacity = progress;
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
       <div className="h-2 w-full bg-gradient-to-r from-primary via-secondary to-primary" />
       <div
-        className="w-full flex justify-center transition-all duration-500"
+        className="w-full flex justify-center"
         style={{
-          backgroundColor: isSmall ? "#1a3a5c" : "transparent",
-          padding: isSmall ? "8px 0" : "16px 0",
+          padding: `${pad}px 0`,
+          backgroundColor: `rgba(26, 58, 92, ${navyOpacity})`,
         }}
       >
         <Link
           href="/"
-          className="block transition-all duration-500 hover:opacity-90"
+          className="block hover:opacity-90"
           style={{
-            width: isSmall ? "48px" : "96px",
-            height: isSmall ? "48px" : "96px",
+            width: `${sealSize}px`,
+            height: `${sealSize}px`,
           }}
         >
           <img
