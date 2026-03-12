@@ -1,21 +1,26 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
+import { Link } from "wouter";
+import { Footer } from "@/components/Footer";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md mx-4">
-        <CardContent className="pt-6">
-          <div className="flex mb-4 gap-2">
-            <AlertCircle className="h-8 w-8 text-red-500" />
-            <h1 className="text-2xl font-bold text-gray-900">404 Page Not Found</h1>
-          </div>
-
-          <p className="mt-4 text-sm text-gray-600">
-            Did you forget to add the page to the router?
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#f5f0eb]">
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center space-y-4 px-4">
+          <h1 className="text-4xl font-serif font-bold text-[#1a3a5c]">
+            404
+          </h1>
+          <p className="text-muted-foreground font-serif">
+            This executive order has been rescinded.
           </p>
-        </CardContent>
-      </Card>
+          <Link
+            href="/"
+            className="inline-block mt-4 text-sm font-serif underline underline-offset-2 text-[#1a3a5c] hover:text-[#1a3a5c]/70 transition-colors"
+          >
+            Return to the Oval Office
+          </Link>
+        </div>
+      </div>
+      <Footer />
     </div>
   );
 }

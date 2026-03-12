@@ -3,6 +3,7 @@ import { useParams, Link } from "wouter";
 import { useGetExecutiveOrder } from "@workspace/api-client-react";
 import { DocumentResult } from "@/components/DocumentResult";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { motion } from "framer-motion";
 
 export default function OrderPage() {
@@ -83,22 +84,7 @@ export default function OrderPage() {
         </main>
       </div>
 
-      <footer className="w-full py-6 text-center text-muted-foreground/60 font-serif text-sm relative z-10 space-y-1">
-        <p>
-          For entertainment purposes only. Not legally binding in any
-          jurisdiction.
-        </p>
-        <p>
-          <a
-            href="https://austinvach.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline underline-offset-2 hover:text-muted-foreground transition-colors"
-          >
-            Who Would Build This?
-          </a>
-        </p>
-      </footer>
+      <Footer />
     </div>
   );
 }

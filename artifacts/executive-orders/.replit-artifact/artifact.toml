@@ -1,6 +1,6 @@
 kind = "web"
 previewPath = "/"
-title = "Presidential Executive Orders"
+title = "AskPOTUS"
 version = "1.0.0"
 id = "artifacts/executive-orders"
 router = "path"
