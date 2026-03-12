@@ -29,8 +29,6 @@ function getButtonContent(paymentState: PaymentState) {
       return { text: "Preparing Payment...", icon: <Loader2 className="w-5 h-5 animate-spin" /> };
     case "awaiting_payment":
       return { text: "Complete Payment (10 sats)", icon: <Zap className="w-5 h-5" /> };
-    case "verifying":
-      return { text: "Verifying Payment...", icon: <Loader2 className="w-5 h-5 animate-spin" /> };
     case "paid":
       return { text: "Payment Confirmed!", icon: <Zap className="w-5 h-5" /> };
     default:
@@ -62,7 +60,7 @@ export function DilemmaForm({
     >
       <button
         onClick={busy ? onCancelPayment : onBack}
-        disabled={paymentState === "verifying" || paymentState === "paid"}
+        disabled={paymentState === "paid"}
         className="absolute top-6 left-6 md:top-8 md:left-8 z-10 text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 text-sm font-semibold tracking-wide disabled:opacity-50"
       >
         <ArrowLeft className="w-4 h-4" />

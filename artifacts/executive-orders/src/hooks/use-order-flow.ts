@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
 
 export type FlowStep = "SELECT_PRESIDENT" | "WRITE_DILEMMA" | "GENERATING" | "RESULT";
-export type PaymentState = "idle" | "creating_invoice" | "awaiting_payment" | "verifying" | "paid";
+export type PaymentState = "idle" | "creating_invoice" | "awaiting_payment" | "paid";
 
 declare global {
   interface Window {
@@ -15,10 +15,6 @@ declare global {
       sendPayment: (invoice: string) => Promise<{ preimage: string }>;
     };
   }
-}
-
-function isMobileDevice(): boolean {
-  return "ontouchstart" in window || navigator.maxTouchPoints > 0;
 }
 
 export function useOrderFlow() {
@@ -103,7 +99,7 @@ export function useOrderFlow() {
     }
   }, [selectedPresident, dilemma, generateMutation, navigate, toast]);
 
-  const pollForPayment = useCallback((paymentHash: string): Promise<void> => {
+  const waitForPayment = useCallback((paymentHash: string): Promise<void> => {
     return new Promise((resolve) => {
       pollRef.current = setInterval(async () => {
         try {
@@ -148,45 +144,21 @@ export function useOrderFlow() {
     }
 
     const { invoice, paymentHash } = invoiceData;
-    const hasWebLN = typeof window !== "undefined" && "webln" in window;
-    const mobile = isMobileDevice();
+    setPaymentState("awaiting_payment");
 
-    if (hasWebLN && !mobile) {
-      setPaymentState("awaiting_payment");
+    const hasWebLN = typeof window !== "undefined" && "webln" in window;
+    if (hasWebLN) {
       try {
         await window.webln!.enable();
-        const result = await window.webln!.sendPayment(invoice);
-
-        setPaymentState("verifying");
-        const verifyRes = await fetch("/api/executive-orders/verify-preimage", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ preimage: result.preimage, invoice }),
-        });
-        const { paid } = await verifyRes.json();
-        if (paid) {
-          setPaymentState("paid");
-          await generateOrder();
-        } else {
-          setPaymentError("Payment could not be verified. Please try again.");
-          setPaymentState("idle");
-        }
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
-        if (msg.toLowerCase().includes("cancel") || msg.toLowerCase().includes("abort")) {
-          setPaymentState("idle");
-        } else {
-          setPaymentError("Payment failed. Please try again.");
-          setPaymentState("idle");
-        }
-      }
+        window.webln!.sendPayment(invoice).catch(() => {});
+      } catch {}
     } else {
-      setPaymentState("awaiting_payment");
       window.open(`lightning:${invoice}`, "_self");
-      await pollForPayment(paymentHash);
-      setPaymentState("paid");
-      await generateOrder();
     }
+
+    await waitForPayment(paymentHash);
+    setPaymentState("paid");
+    await generateOrder();
   };
 
   const cancelPayment = () => {

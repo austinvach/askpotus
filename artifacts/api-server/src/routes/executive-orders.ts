@@ -5,7 +5,6 @@ import { GenerateExecutiveOrderBody } from "@workspace/api-zod";
 import { db, executiveOrdersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { LN } from "@getalby/sdk";
-import { Invoice } from "@getalby/lightning-tools";
 
 const paymentStatus = new Map<string, boolean>();
 
@@ -57,7 +56,7 @@ Sign off as "Joseph R. Biden Jr., President of the United States."`,
   },
 };
 
-router.post("/executive-orders/invoice", async (req, res) => {
+router.post("/executive-orders/invoice", async (_req, res) => {
   try {
     const ln = getLNClient();
     const request = await ln.requestPayment({ satoshi: 10 }, {
@@ -68,7 +67,7 @@ router.post("/executive-orders/invoice", async (req, res) => {
     paymentStatus.set(ph, false);
 
     request
-      .onPaid((payment) => {
+      .onPaid(() => {
         console.log("Payment confirmed for:", ph.slice(0, 12));
         paymentStatus.set(ph, true);
       })
@@ -88,46 +87,6 @@ router.post("/executive-orders/invoice", async (req, res) => {
 router.get("/executive-orders/invoice/:paymentHash", (_req, res) => {
   const paid = paymentStatus.get(_req.params.paymentHash) === true;
   res.json({ paid });
-});
-
-router.post("/executive-orders/verify-preimage", (req, res) => {
-  try {
-    const { preimage, invoice: invoiceStr } = req.body as { preimage?: string; invoice?: string };
-    console.log("verify-preimage received:", {
-      hasPreimage: !!preimage,
-      preimageLen: preimage?.length,
-      preimageFirst20: preimage?.slice(0, 20),
-      hasInvoice: !!invoiceStr,
-      invoiceFirst30: invoiceStr?.slice(0, 30)
-    });
-    
-    if (!preimage || !invoiceStr) {
-      res.status(400).json({ error: "Missing preimage or invoice" });
-      return;
-    }
-    
-    try {
-      const inv = new Invoice({ pr: invoiceStr });
-      console.log("Invoice parsed:", {
-        paymentHash: inv.paymentHash.slice(0, 12),
-        hasPaymentHash: !!inv.paymentHash
-      });
-      
-      const valid = inv.validatePreimage(preimage);
-      console.log("validatePreimage result:", valid, "preimageLen:", preimage.length);
-      
-      if (valid) {
-        paymentStatus.set(inv.paymentHash, true);
-      }
-      res.json({ paid: valid });
-    } catch (invoiceErr) {
-      console.error("Invoice parsing or validation error:", invoiceErr);
-      res.status(400).json({ error: "Invalid invoice or preimage format" });
-    }
-  } catch (err) {
-    console.error("Preimage verify error:", err);
-    res.status(500).json({ error: "Verification failed" });
-  }
 });
 
 router.post("/executive-orders/generate", async (req, res) => {
