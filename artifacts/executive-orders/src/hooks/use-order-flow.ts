@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { useGenerateExecutiveOrder } from "@workspace/api-client-react";
 import type { GenerateOrderRequestPresident, GenerateOrderResponse } from "@workspace/api-client-react/src/generated/api.schemas";
 import { useToast } from "@/hooks/use-toast";
+import { LN } from "@getalby/sdk";
 import confetti from "canvas-confetti";
 
 export type FlowStep = "SELECT_PRESIDENT" | "WRITE_DILEMMA" | "GENERATING" | "RESULT";
@@ -17,6 +18,17 @@ declare global {
   }
 }
 
+let lnClient: LN | null = null;
+
+async function getLNClient(): Promise<LN> {
+  if (lnClient) return lnClient;
+  const res = await fetch("/api/executive-orders/nwc-config");
+  if (!res.ok) throw new Error("Payment not configured");
+  const { nwcUrl } = await res.json();
+  lnClient = new LN(nwcUrl);
+  return lnClient;
+}
+
 export function useOrderFlow() {
   const [step, setStep] = useState<FlowStep>("SELECT_PRESIDENT");
   const [selectedPresident, setSelectedPresident] = useState<GenerateOrderRequestPresident | null>(null);
@@ -24,7 +36,7 @@ export function useOrderFlow() {
   const [result, setResult] = useState<GenerateOrderResponse | null>(null);
   const [paymentState, setPaymentState] = useState<PaymentState>("idle");
   const [paymentError, setPaymentError] = useState<string | null>(null);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const unsubRef = useRef<(() => void) | null>(null);
   const [, navigate] = useLocation();
 
   const { toast } = useToast();
@@ -41,7 +53,7 @@ export function useOrderFlow() {
       setSelectedPresident(null);
       setPaymentState("idle");
       setPaymentError(null);
-      if (pollRef.current) clearInterval(pollRef.current);
+      unsubRef.current?.();
     } else if (step === "RESULT") {
       setStep("SELECT_PRESIDENT");
       setSelectedPresident(null);
@@ -99,22 +111,6 @@ export function useOrderFlow() {
     }
   }, [selectedPresident, dilemma, generateMutation, navigate, toast]);
 
-  const waitForPayment = useCallback((paymentHash: string): Promise<void> => {
-    return new Promise((resolve) => {
-      pollRef.current = setInterval(async () => {
-        try {
-          const res = await fetch(`/api/executive-orders/invoice/${paymentHash}`);
-          const data = await res.json();
-          if (data.paid) {
-            clearInterval(pollRef.current!);
-            pollRef.current = null;
-            resolve();
-          }
-        } catch {}
-      }, 2000);
-    });
-  }, []);
-
   const submitDilemma = async () => {
     if (!selectedPresident || !dilemma.trim()) {
       toast({
@@ -128,44 +124,52 @@ export function useOrderFlow() {
     setPaymentError(null);
     setPaymentState("creating_invoice");
 
-    let invoiceData: { invoice: string; paymentHash: string };
     try {
-      const res = await fetch("/api/executive-orders/invoice", { method: "POST" });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? "Failed to create invoice");
+      const ln = await getLNClient();
+      const request = await ln.requestPayment({ satoshi: 10 }, {
+        description: "Executive Order — 10 sats",
+      });
+
+      const bolt11 = request.invoice.paymentRequest;
+      setPaymentState("awaiting_payment");
+
+      const paymentPromise = new Promise<void>((resolve) => {
+        request
+          .onPaid(() => {
+            console.log("Payment confirmed!");
+            resolve();
+          })
+          .onTimeout(600, () => {
+            console.log("Invoice expired");
+          });
+      });
+
+      unsubRef.current = () => request.unsubscribe();
+
+      const hasWebLN = typeof window !== "undefined" && "webln" in window;
+      if (hasWebLN) {
+        try {
+          await window.webln!.enable();
+          window.webln!.sendPayment(bolt11).catch(() => {});
+        } catch {}
+      } else {
+        window.open(`lightning:${bolt11}`, "_self");
       }
-      invoiceData = await res.json();
+
+      await paymentPromise;
+      setPaymentState("paid");
+      await generateOrder();
+
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Could not create payment invoice.";
+      const msg = err instanceof Error ? err.message : "Payment failed.";
       setPaymentError(msg);
       setPaymentState("idle");
-      return;
     }
-
-    const { invoice, paymentHash } = invoiceData;
-    setPaymentState("awaiting_payment");
-
-    const hasWebLN = typeof window !== "undefined" && "webln" in window;
-    if (hasWebLN) {
-      try {
-        await window.webln!.enable();
-        window.webln!.sendPayment(invoice).catch(() => {});
-      } catch {}
-    } else {
-      window.open(`lightning:${invoice}`, "_self");
-    }
-
-    await waitForPayment(paymentHash);
-    setPaymentState("paid");
-    await generateOrder();
   };
 
   const cancelPayment = () => {
-    if (pollRef.current) {
-      clearInterval(pollRef.current);
-      pollRef.current = null;
-    }
+    unsubRef.current?.();
+    unsubRef.current = null;
     setPaymentState("idle");
     setPaymentError(null);
   };

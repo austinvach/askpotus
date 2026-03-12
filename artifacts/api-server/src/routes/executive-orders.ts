@@ -4,18 +4,6 @@ import { openai } from "@workspace/integrations-openai-ai-server";
 import { GenerateExecutiveOrderBody } from "@workspace/api-zod";
 import { db, executiveOrdersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { LN } from "@getalby/sdk";
-
-const paymentStatus = new Map<string, boolean>();
-
-let lnClient: LN | null = null;
-function getLNClient(): LN {
-  if (lnClient) return lnClient;
-  const url = process.env.NWC_URL;
-  if (!url) throw new Error("NWC_URL not configured");
-  lnClient = new LN(url);
-  return lnClient;
-}
 
 const router: IRouter = Router();
 
@@ -56,37 +44,13 @@ Sign off as "Joseph R. Biden Jr., President of the United States."`,
   },
 };
 
-router.post("/executive-orders/invoice", async (_req, res) => {
-  try {
-    const ln = getLNClient();
-    const request = await ln.requestPayment({ satoshi: 10 }, {
-      description: "Executive Order — 10 sats",
-    });
-    const ph = request.invoice.paymentHash;
-    const bolt11 = request.invoice.paymentRequest;
-    paymentStatus.set(ph, false);
-
-    request
-      .onPaid(() => {
-        console.log("Payment confirmed for:", ph.slice(0, 12));
-        paymentStatus.set(ph, true);
-      })
-      .onTimeout(600, () => {
-        console.log("Invoice expired for:", ph.slice(0, 12));
-        paymentStatus.delete(ph);
-      });
-
-    res.json({ invoice: bolt11, paymentHash: ph });
-  } catch (err) {
-    console.error("Invoice creation error:", err);
-    const msg = err instanceof Error ? err.message : "Unknown error";
-    res.status(500).json({ error: msg.includes("NWC_URL") ? "Payment not configured" : "Failed to create invoice" });
+router.get("/executive-orders/nwc-config", (_req, res) => {
+  const url = process.env.NWC_URL;
+  if (!url) {
+    res.status(500).json({ error: "NWC not configured" });
+    return;
   }
-});
-
-router.get("/executive-orders/invoice/:paymentHash", (_req, res) => {
-  const paid = paymentStatus.get(_req.params.paymentHash) === true;
-  res.json({ paid });
+  res.json({ nwcUrl: url });
 });
 
 router.post("/executive-orders/generate", async (req, res) => {
