@@ -15,6 +15,7 @@ const PAD_LARGE = 16;
 const PAD_SMALL = 8;
 const GRADIENT_H = 8;
 const SCROLL_RANGE = 100;
+const INITIAL_HEADER_HEIGHT = GRADIENT_H + PAD_LARGE * 2 + SEAL_LARGE;
 
 function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t;
@@ -62,7 +63,6 @@ export default function Home() {
   const t = isSelectStep ? Math.min(scrollY / SCROLL_RANGE, 1) : 1;
   const sealSize = lerp(SEAL_LARGE, SEAL_SMALL, t);
   const pad = lerp(PAD_LARGE, PAD_SMALL, t);
-  const headerHeight = GRADIENT_H + pad * 2 + sealSize;
 
   return (
     <div className="min-h-screen w-full flex flex-col relative overflow-x-hidden">
@@ -106,7 +106,7 @@ export default function Home() {
       {/* Page content — paddingTop matches header height exactly */}
       <div
         className="flex-1 relative z-20 flex flex-col"
-        style={{ paddingTop: headerHeight }}
+        style={{ paddingTop: INITIAL_HEADER_HEIGHT }}
       >
         <AnimatePresence>
           {isSelectStep && <Hero key="hero" />}
