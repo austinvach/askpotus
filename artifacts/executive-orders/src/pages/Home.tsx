@@ -13,7 +13,7 @@ const SEAL_SMALL = 48;
 const PAD_LARGE = 16;
 const PAD_SMALL = 8;
 const GRADIENT_H = 8;
-const SCROLL_RANGE = 100;
+const SCROLL_RANGE = 64;
 
 function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t;
