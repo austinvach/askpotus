@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
@@ -8,7 +8,7 @@ import { GeneratingState } from "@/components/GeneratingState";
 import { DocumentResult } from "@/components/DocumentResult";
 import { Footer } from "@/components/Footer";
 import { useOrderFlow } from "@/hooks/use-order-flow";
-import { useHeaderScroll } from "@/hooks/use-header-scroll";
+import { calcProgress, calcHeaderHeight } from "@/hooks/use-header-scroll";
 
 export default function Home() {
   const {
@@ -27,7 +27,21 @@ export default function Home() {
   } = useOrderFlow();
 
   const isSelectStep = step === "SELECT_PRESIDENT";
-  const { headerHeight } = useHeaderScroll(!isSelectStep);
+
+  const [scrollY, setScrollY] = useState(0);
+  useEffect(() => {
+    if (!isSelectStep) {
+      setScrollY(0);
+      return;
+    }
+    const onScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    setScrollY(window.scrollY);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [isSelectStep]);
+
+  const progress = isSelectStep ? calcProgress(scrollY) : 1;
+  const headerHeight = calcHeaderHeight(progress);
 
   return (
     <div className="min-h-screen w-full flex flex-col relative overflow-x-hidden">
@@ -36,7 +50,7 @@ export default function Home() {
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/3" />
       </div>
 
-      <Header compact={!isSelectStep} />
+      <Header progress={progress} />
 
       <div
         className="flex-1 relative z-10 flex flex-col"
