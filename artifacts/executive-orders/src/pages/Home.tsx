@@ -35,7 +35,7 @@ export default function Home() {
       <div className="flex-1 relative z-10 flex flex-col pt-4 md:pt-8">
         {step !== "RESULT" && <Header />}
 
-        <main className="flex-1 w-full pb-16 pt-6 flex flex-col items-center justify-start min-h-[500px]">
+        <main className="flex-1 w-full pt-6 flex flex-col items-center justify-start min-h-[500px]">
           <AnimatePresence mode="wait">
             {step === "SELECT_PRESIDENT" && (
               <PresidentSelector
