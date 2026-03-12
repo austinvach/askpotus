@@ -59,7 +59,7 @@ export function PresidentSelector({ onSelect }: PresidentSelectorProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
-        className="text-center mb-10"
+        className="text-center mb-6"
       >
         <h2 className="text-2xl font-display font-semibold text-foreground">
           Select Your Commander in Chief
