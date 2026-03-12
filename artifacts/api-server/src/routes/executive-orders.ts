@@ -93,17 +93,37 @@ router.get("/executive-orders/invoice/:paymentHash", (_req, res) => {
 router.post("/executive-orders/verify-preimage", (req, res) => {
   try {
     const { preimage, invoice: invoiceStr } = req.body as { preimage?: string; invoice?: string };
+    console.log("verify-preimage received:", {
+      hasPreimage: !!preimage,
+      preimageLen: preimage?.length,
+      preimageFirst20: preimage?.slice(0, 20),
+      hasInvoice: !!invoiceStr,
+      invoiceFirst30: invoiceStr?.slice(0, 30)
+    });
+    
     if (!preimage || !invoiceStr) {
       res.status(400).json({ error: "Missing preimage or invoice" });
       return;
     }
-    const inv = new Invoice({ pr: invoiceStr });
-    const valid = inv.validatePreimage(preimage);
-    if (valid) {
-      paymentStatus.set(inv.paymentHash, true);
+    
+    try {
+      const inv = new Invoice({ pr: invoiceStr });
+      console.log("Invoice parsed:", {
+        paymentHash: inv.paymentHash.slice(0, 12),
+        hasPaymentHash: !!inv.paymentHash
+      });
+      
+      const valid = inv.validatePreimage(preimage);
+      console.log("validatePreimage result:", valid, "preimageLen:", preimage.length);
+      
+      if (valid) {
+        paymentStatus.set(inv.paymentHash, true);
+      }
+      res.json({ paid: valid });
+    } catch (invoiceErr) {
+      console.error("Invoice parsing or validation error:", invoiceErr);
+      res.status(400).json({ error: "Invalid invoice or preimage format" });
     }
-    console.log("preimage verify:", valid, "hash:", inv.paymentHash.slice(0, 12));
-    res.json({ paid: valid });
   } catch (err) {
     console.error("Preimage verify error:", err);
     res.status(500).json({ error: "Verification failed" });
