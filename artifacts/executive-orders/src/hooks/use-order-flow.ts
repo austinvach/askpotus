@@ -120,13 +120,14 @@ export function useOrderFlow() {
       const lnAddress = new LightningAddress(LIGHTNING_ADDRESS);
       await lnAddress.fetch();
       const invoiceObj = await lnAddress.requestInvoice({ satoshi: 10 });
-      console.log("Invoice fetched from", LIGHTNING_ADDRESS);
+      console.log("LNURL invoice fetched from", LIGHTNING_ADDRESS, ":", invoiceObj.paymentRequest.slice(0, 40) + "...");
 
       setPaymentState("paying");
 
       const ln = await getLNClient();
-      await ln.pay(invoiceObj.paymentRequest);
-      console.log("Payment sent to", LIGHTNING_ADDRESS);
+      console.log("Paying invoice via NWC wallet...");
+      const payResult = await ln.pay(invoiceObj.paymentRequest);
+      console.log("Payment complete! Preimage:", payResult.preimage?.slice(0, 16) + "...");
 
       setPaymentState("paid");
       await generateOrder();
