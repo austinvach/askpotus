@@ -8,9 +8,7 @@ import { GeneratingState } from "@/components/GeneratingState";
 import { DocumentResult } from "@/components/DocumentResult";
 import { Footer } from "@/components/Footer";
 import { useOrderFlow } from "@/hooks/use-order-flow";
-
-const LARGE_HEADER_H = 136;
-const SMALL_HEADER_H = 72;
+import { useHeaderScroll } from "@/hooks/use-header-scroll";
 
 export default function Home() {
   const {
@@ -29,7 +27,7 @@ export default function Home() {
   } = useOrderFlow();
 
   const isSelectStep = step === "SELECT_PRESIDENT";
-  const headerH = isSelectStep ? LARGE_HEADER_H : SMALL_HEADER_H;
+  const { headerHeight } = useHeaderScroll(!isSelectStep);
 
   return (
     <div className="min-h-screen w-full flex flex-col relative overflow-x-hidden">
@@ -41,8 +39,8 @@ export default function Home() {
       <Header compact={!isSelectStep} />
 
       <div
-        className="flex-1 relative z-10 flex flex-col transition-all duration-500"
-        style={{ paddingTop: headerH }}
+        className="flex-1 relative z-10 flex flex-col"
+        style={{ paddingTop: headerHeight }}
       >
         <AnimatePresence>
           {isSelectStep && <Hero key="hero" />}
