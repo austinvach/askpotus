@@ -1,9 +1,7 @@
 export function Footer() {
   return (
     <footer className="w-full py-6 text-center text-muted-foreground/60 font-serif text-sm relative z-10 space-y-1">
-      <p>
-        For entertainment purposes only. Not legally binding.
-      </p>
+      <p>For entertainment purposes only. Not yet legally binding.</p>
       <p>
         <a
           href="https://austinvach.com"
