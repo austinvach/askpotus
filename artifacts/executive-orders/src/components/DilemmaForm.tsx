@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { GenerateOrderRequestPresident } from "@workspace/api-client-react/src/generated/api.schemas";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Loader2 } from "lucide-react";
@@ -90,20 +90,20 @@ export function DilemmaForm({
         <div className="space-y-6">
           <div className="relative group">
             <div className="absolute -inset-1 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-500"></div>
-            <motion.div
-              key={`placeholder-fade-${suggestionIndex}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4 }}
-              className="absolute inset-0 pointer-events-none"
-            />
-            <Textarea
-              value={dilemma}
-              onChange={(e) => onChange(e.target.value)}
-              placeholder={PLACEHOLDER_SUGGESTIONS[suggestionIndex]}
-              className="relative w-full text-lg md:text-xl font-serif p-6 bg-background/50 border-2 border-border rounded-xl focus-visible:ring-accent focus-visible:border-accent transition-all resize-none shadow-inner placeholder:text-muted-foreground/30"
-              disabled={busy}
-            />
+            <AnimatePresence mode="wait">
+              <motion.textarea
+                key={`placeholder-${suggestionIndex}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.4 }}
+                value={dilemma}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder={PLACEHOLDER_SUGGESTIONS[suggestionIndex]}
+                className="relative w-full text-lg md:text-xl font-serif p-6 bg-background/50 border-2 border-border rounded-xl focus-visible:ring-accent focus-visible:border-accent transition-all resize-none shadow-inner placeholder:text-muted-foreground/30"
+                disabled={busy}
+              />
+            </AnimatePresence>
           </div>
 
           <div className="flex flex-col items-center gap-3 pt-4">
