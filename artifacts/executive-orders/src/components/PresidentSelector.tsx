@@ -1,6 +1,6 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { GenerateOrderRequestPresident } from '@workspace/api-client-react/src/generated/api.schemas';
+import React from "react";
+import { motion } from "framer-motion";
+import { GenerateOrderRequestPresident } from "@workspace/api-client-react/src/generated/api.schemas";
 
 interface PresidentSelectorProps {
   onSelect: (president: GenerateOrderRequestPresident) => void;
@@ -12,29 +12,29 @@ const PRESIDENTS = [
     name: "George W. Bush",
     term: "43rd",
     image: "bush.png",
-    color: "from-red-900/80 to-red-700/80"
+    color: "from-red-900/80 to-red-700/80",
   },
   {
     id: GenerateOrderRequestPresident.obama,
     name: "Barack Obama",
     term: "44th",
     image: "obama.png",
-    color: "from-blue-900/80 to-blue-700/80"
+    color: "from-blue-900/80 to-blue-700/80",
   },
   {
     id: GenerateOrderRequestPresident.biden,
     name: "Joe Biden",
     term: "46th",
     image: "biden.png",
-    color: "from-blue-700/80 to-blue-500/80"
+    color: "from-blue-700/80 to-blue-500/80",
   },
   {
     id: GenerateOrderRequestPresident.trump,
     name: "Donald Trump",
     term: "45th & 47th",
     image: "trump.png",
-    color: "from-red-600/80 to-red-500/80"
-  }
+    color: "from-red-600/80 to-red-500/80",
+  },
 ];
 
 const container = {
@@ -42,9 +42,9 @@ const container = {
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0
-    }
-  }
+      staggerChildren: 0,
+    },
+  },
 };
 
 export function PresidentSelector({ onSelect }: PresidentSelectorProps) {
@@ -59,7 +59,7 @@ export function PresidentSelector({ onSelect }: PresidentSelectorProps) {
         </p>
       </div>
 
-      <motion.div 
+      <div
         variants={container}
         initial="hidden"
         animate="show"
@@ -73,7 +73,7 @@ export function PresidentSelector({ onSelect }: PresidentSelectorProps) {
           >
             <div className="w-full aspect-[3/4] relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
-              <img 
+              <img
                 src={`${import.meta.env.BASE_URL}images/${president.image}`}
                 alt={president.name}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -90,7 +90,7 @@ export function PresidentSelector({ onSelect }: PresidentSelectorProps) {
             <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/10 transition-colors duration-300 z-0" />
           </motion.button>
         ))}
-      </motion.div>
+      </div>
     </div>
   );
 }

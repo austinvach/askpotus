@@ -40,10 +40,6 @@ export default function Home() {
 
       {/* Content with header margin */}
       <div className="flex-1 relative z-20 flex flex-col">
-        <AnimatePresence>
-          {isSelectStep && <Title key="title" progress={0} />}
-        </AnimatePresence>
-
         <AnimatePresence mode="wait">
           <motion.main
             key={step}
@@ -54,10 +50,13 @@ export default function Home() {
             className="flex-1 w-full pt-6 flex flex-col items-center justify-start"
           >
             {step === "SELECT_PRESIDENT" && (
-              <PresidentSelector
-                key="selector"
-                onSelect={handleSelectPresident}
-              />
+              <>
+                <Title key="title" progress={0} />
+                <PresidentSelector
+                  key="selector"
+                  onSelect={handleSelectPresident}
+                />
+              </>
             )}
 
             {step === "WRITE_DILEMMA" && selectedPresident && (
