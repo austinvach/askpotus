@@ -7,20 +7,6 @@ interface PresidentSelectorProps {
 }
 
 const PRESIDENTS = [
-  // {
-  //   id: GenerateOrderRequestPresident.george_w_bush,
-  //   name: "George W. Bush",
-  //   term: "43rd",
-  //   image: "bush.png",
-  //   color: "from-red-900/80 to-red-700/80",
-  // },
-  // {
-  //   id: GenerateOrderRequestPresident.obama,
-  //   name: "Barack Obama",
-  //   term: "44th",
-  //   image: "obama.png",
-  //   color: "from-blue-900/80 to-blue-700/80",
-  // },
   {
     id: GenerateOrderRequestPresident.trump,
     name: "Donald Trump",
@@ -37,7 +23,17 @@ const PRESIDENTS = [
   },
 ];
 
+const GRID_CLASSES: Record<number, string> = {
+  1: "grid-cols-1 max-w-xs mx-auto",
+  2: "grid-cols-2 max-w-2xl mx-auto",
+  3: "grid-cols-3 max-w-4xl mx-auto",
+  4: "grid-cols-2 lg:grid-cols-4",
+};
+
 export function PresidentSelector({ onSelect }: PresidentSelectorProps) {
+  const count = PRESIDENTS.length;
+  const gridClass = GRID_CLASSES[count] ?? GRID_CLASSES[4];
+
   return (
     <div className="w-full max-w-6xl mx-auto px-4">
       <div className="text-center mb-6">
@@ -49,7 +45,7 @@ export function PresidentSelector({ onSelect }: PresidentSelectorProps) {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 justify-center">
+      <div className={`grid gap-4 md:gap-6 ${gridClass}`}>
         {PRESIDENTS.map((president) => (
           <motion.button
             key={president.id}
