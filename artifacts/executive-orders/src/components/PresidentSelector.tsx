@@ -38,18 +38,13 @@ const PRESIDENTS = [
 ];
 
 const container = {
-  hidden: { opacity: 0 },
+  hidden: { opacity: 1 },
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.15
+      staggerChildren: 0
     }
   }
-};
-
-const item = {
-  hidden: { opacity: 0, y: 30 },
-  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
 };
 
 export function PresidentSelector({ onSelect }: PresidentSelectorProps) {
@@ -78,7 +73,6 @@ export function PresidentSelector({ onSelect }: PresidentSelectorProps) {
         {PRESIDENTS.map((president) => (
           <motion.button
             key={president.id}
-            variants={item}
             onClick={() => onSelect(president.id)}
             className="group relative flex flex-col items-center text-left bg-white rounded-2xl overflow-hidden box-shadow-document hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-accent outline-none focus-visible:ring-4 focus-visible:ring-accent/30"
           >
