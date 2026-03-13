@@ -1,5 +1,5 @@
 import React from "react";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Title } from "@/components/Title";
 import { PresidentSelector } from "@/components/PresidentSelector";
@@ -44,8 +44,15 @@ export default function Home() {
           {isSelectStep && <Title key="title" progress={0} />}
         </AnimatePresence>
 
-        <main className="flex-1 w-full pt-6 flex flex-col items-center justify-start">
-          <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait">
+          <motion.main
+            key={step}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="flex-1 w-full pt-6 flex flex-col items-center justify-start"
+          >
             {step === "SELECT_PRESIDENT" && (
               <PresidentSelector
                 key="selector"
@@ -72,8 +79,8 @@ export default function Home() {
             {step === "RESULT" && result && (
               <DocumentResult key="result" result={result} onReset={reset} />
             )}
-          </AnimatePresence>
-        </main>
+          </motion.main>
+        </AnimatePresence>
       </div>
 
       <Footer />

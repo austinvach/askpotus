@@ -51,13 +51,7 @@ export function DilemmaForm({
   const { text, icon } = getButtonContent(paymentState);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="w-full max-w-2xl mx-auto bg-white rounded-3xl p-8 md:p-12 box-shadow-document relative paper-texture overflow-hidden"
-    >
+    <div className="w-full max-w-2xl mx-auto bg-white rounded-3xl p-8 md:p-12 box-shadow-document relative paper-texture overflow-hidden">
       <button
         onClick={busy ? onCancelPayment : onBack}
         disabled={paymentState === "paid"}
@@ -120,6 +114,6 @@ export function DilemmaForm({
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
