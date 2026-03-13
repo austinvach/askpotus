@@ -50,25 +50,20 @@ const container = {
 export function PresidentSelector({ onSelect }: PresidentSelectorProps) {
   return (
     <div className="w-full max-w-6xl mx-auto px-4">
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="text-center mb-6"
-      >
+      <div className="text-center mb-6">
         <h2 className="text-2xl font-display font-semibold text-foreground">
           Select Your Commander in Chief
         </h2>
         <p className="text-muted-foreground font-serif mt-2">
           Who shall issue your binding resolution?
         </p>
-      </motion.div>
+      </div>
 
       <motion.div 
         variants={container}
         initial="hidden"
         animate="show"
-        className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8"
+        className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
       >
         {PRESIDENTS.map((president) => (
           <motion.button

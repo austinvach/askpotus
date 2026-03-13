@@ -39,12 +39,12 @@ export default function Home() {
       <Header />
 
       {/* Content with header margin */}
-      <div className="flex-1 relative z-20 flex flex-col pt-4">
+      <div className="flex-1 relative z-20 flex flex-col">
         <AnimatePresence>
           {isSelectStep && <Title key="title" progress={0} />}
         </AnimatePresence>
 
-        <main className="flex-1 w-full pt-6 flex flex-col items-center justify-start min-h-[500px]">
+        <main className="flex-1 w-full pt-6 flex flex-col items-center justify-start">
           <AnimatePresence mode="wait">
             {step === "SELECT_PRESIDENT" && (
               <PresidentSelector

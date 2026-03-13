@@ -1,47 +1,16 @@
 import React from "react";
 import { Link } from "wouter";
-import { motion } from "framer-motion";
 
-const SEAL_LARGE = 96;
-const SEAL_SMALL = 48;
-const PAD_LARGE = 16;
-const PAD_SMALL = 8;
-
-function lerp(a: number, b: number, t: number) {
-  return a + (b - a) * t;
-}
-
-interface TitleProps {
-  progress?: number; // optional, unused for now
-}
-
-export function Title({ progress = 0 }: TitleProps) {
-  const sealSize = SEAL_LARGE;
-  const pad = PAD_LARGE;
-
+export function Title() {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      className="w-full flex flex-col items-center justify-center text-center px-4"
-    >
+    <div className="w-full flex flex-col items-center justify-center text-center">
       {/* Presidential Seal */}
-      <div
-        style={{
-          marginBottom: pad,
-        }}
-      >
-        <Link
-          href="/"
-          style={{ width: sealSize, height: sealSize, display: "block" }}
-          className="hover:opacity-90 transition-opacity"
-        >
+      <div className="pb-4">
+        <Link href="/" className="hover:opacity-90 transition-opacity">
           <img
             src={`${import.meta.env.BASE_URL}images/seal.svg`}
             alt="Presidential Seal"
-            className="w-full h-full object-contain drop-shadow-xl"
+            className="size-30 object-contain drop-shadow-xl"
           />
         </Link>
       </div>
@@ -61,6 +30,6 @@ export function Title({ progress = 0 }: TitleProps) {
       <div className="flex items-center justify-center gap-4 mt-6 w-full max-w-md">
         <div className="h-px bg-gradient-to-r from-transparent via-accent to-transparent flex-1 opacity-50" />
       </div>
-    </motion.div>
+    </div>
   );
 }
