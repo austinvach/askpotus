@@ -1,9 +1,17 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { GenerateOrderRequestPresident } from "@workspace/api-client-react/src/generated/api.schemas";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import type { PaymentState } from "@/hooks/use-order-flow";
+
+const PLACEHOLDER_SUGGESTIONS = [
+  "Should I quit my job and code full-time?",
+  "Is it time to learn a new programming language?",
+  "Should I accept that job offer?",
+  "Is my startup idea viable?",
+  "Should I focus on work-life balance?",
+];
 
 interface DilemmaFormProps {
   president: GenerateOrderRequestPresident;
@@ -49,6 +57,14 @@ export function DilemmaForm({
   const lastName = PRESIDENT_LAST_NAMES[president];
   const busy = paymentState !== "idle";
   const text = getButtonContent(paymentState);
+  const [suggestionIndex, setSuggestionIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSuggestionIndex((i) => (i + 1) % PLACEHOLDER_SUGGESTIONS.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="w-full max-w-2xl mx-auto bg-white rounded-3xl p-8 md:p-12 box-shadow-document relative paper-texture overflow-hidden">
@@ -67,8 +83,7 @@ export function DilemmaForm({
             Petition to the Oval Office
           </p>
           <h2 className="text-3xl md:text-4xl font-display text-primary leading-tight">
-            What Requires the Attention of 
-            President {lastName}?
+            What Requires the Attention of President {lastName}?
           </h2>
         </div>
 
@@ -78,8 +93,8 @@ export function DilemmaForm({
             <Textarea
               value={dilemma}
               onChange={(e) => onChange(e.target.value)}
-              placeholder="Should I quit my job and vibe code full-time?"
-              className="relative w-full text-lg md:text-xl font-serif p-6 bg-background/50 border-2 border-border rounded-xl focus-visible:ring-accent focus-visible:border-accent transition-all resize-none shadow-inner"
+              placeholder={PLACEHOLDER_SUGGESTIONS[suggestionIndex]}
+              className="relative w-full text-lg md:text-xl font-serif p-6 bg-background/50 border-2 border-border rounded-xl focus-visible:ring-accent focus-visible:border-accent transition-all resize-none shadow-inner placeholder:text-muted-foreground/30"
               disabled={busy}
             />
           </div>
@@ -91,9 +106,7 @@ export function DilemmaForm({
               className="relative overflow-hidden group px-10 py-5 bg-primary text-white rounded-full font-display font-bold text-lg md:text-xl shadow-[0_10px_20px_-10px_rgba(10,49,97,0.5)] hover:shadow-[0_20px_25px_-5px_rgba(10,49,97,0.4)] hover:-translate-y-1 transition-all duration-300 disabled:opacity-60 disabled:pointer-events-none disabled:transform-none"
             >
               <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
-              <span className="relative z-10">
-                {text}
-              </span>
+              <span className="relative z-10">{text}</span>
             </button>
 
             {paymentError && (
