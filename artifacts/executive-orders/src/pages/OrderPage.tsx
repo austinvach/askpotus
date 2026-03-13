@@ -2,10 +2,9 @@ import React from "react";
 import { useParams, Link } from "wouter";
 import { useGetExecutiveOrder } from "@workspace/api-client-react";
 import { DocumentResult } from "@/components/DocumentResult";
+import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { motion } from "framer-motion";
-
-const HEADER_H = 8;
 
 export default function OrderPage() {
   const params = useParams<{ id: string }>();
@@ -22,7 +21,7 @@ export default function OrderPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col">
-        <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50 }} className="h-2 bg-gradient-to-r from-primary via-secondary to-primary" />
+        <Header />
         <div className="flex-1 flex items-center justify-center pt-4">
           <motion.div
             animate={{ opacity: [0.4, 1, 0.4] }}
@@ -42,7 +41,7 @@ export default function OrderPage() {
   if (isError || !order) {
     return (
       <div className="min-h-screen flex flex-col">
-        <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50 }} className="h-2 bg-gradient-to-r from-primary via-secondary to-primary" />
+        <Header />
         <div className="flex-1 flex items-center justify-center px-4 pt-4">
           <div className="text-center max-w-md">
             <div className="text-6xl mb-6">🏛️</div>
@@ -72,7 +71,7 @@ export default function OrderPage() {
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/3" />
       </div>
 
-      <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50 }} className="h-2 bg-gradient-to-r from-primary via-secondary to-primary" />
+      <Header />
 
       <div className="flex-1 relative z-10 flex flex-col pt-4">
         <main className="flex-1 w-full pb-16 pt-8 flex flex-col items-center">

@@ -1,5 +1,6 @@
 import React from "react";
 import { AnimatePresence } from "framer-motion";
+import { Header } from "@/components/Header";
 import { Title } from "@/components/Title";
 import { PresidentSelector } from "@/components/PresidentSelector";
 import { DilemmaForm } from "@/components/DilemmaForm";
@@ -35,10 +36,7 @@ export default function Home() {
       </div>
 
       {/* Fixed header — gradient bar only */}
-      <header
-        style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50 }}
-        className="h-2 bg-gradient-to-r from-primary via-secondary to-primary"
-      />
+      <Header />
 
       {/* Content with header margin */}
       <div className="flex-1 relative z-20 flex flex-col pt-4">
