@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { GenerateOrderRequestPresident } from "@workspace/api-client-react/src/generated/api.schemas";
 import { Textarea } from "@/components/ui/textarea";
@@ -56,6 +56,14 @@ export function DilemmaForm({
   const busy = paymentState !== "idle";
   const text = getButtonContent(paymentState);
   const [suggestionIndex, setSuggestionIndex] = useState(0);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const autoResize = useCallback(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -96,10 +104,11 @@ export function DilemmaForm({
               className="absolute inset-0 pointer-events-none"
             />
             <Textarea
+              ref={textareaRef}
               value={dilemma}
-              onChange={(e) => onChange(e.target.value)}
+              onChange={(e) => { onChange(e.target.value); autoResize(); }}
               placeholder={PLACEHOLDER_SUGGESTIONS[suggestionIndex]}
-              className="relative w-full text-lg md:text-xl font-serif p-6 bg-background/50 border-2 border-border rounded-xl focus-visible:ring-accent focus-visible:border-accent transition-all resize-none shadow-inner placeholder:text-muted-foreground/30"
+              className="relative w-full text-lg md:text-xl font-serif p-6 bg-background/50 border-2 border-border rounded-xl focus-visible:ring-accent focus-visible:border-accent transition-all resize-none shadow-inner placeholder:text-muted-foreground/30 overflow-hidden"
               rows={1}
               disabled={busy}
             />
