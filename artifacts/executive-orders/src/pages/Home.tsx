@@ -47,7 +47,7 @@ export default function Home() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="flex-1 w-full pt-6 flex flex-col items-center justify-start"
+            className="flex-1 w-full flex flex-col items-center justify-start"
           >
             {step === "SELECT_PRESIDENT" && (
               <>

@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { GenerateOrderRequestPresident } from "@workspace/api-client-react/src/generated/api.schemas";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, PenTool, Zap, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import type { PaymentState } from "@/hooks/use-order-flow";
 
 interface DilemmaFormProps {
@@ -26,13 +26,13 @@ const PRESIDENT_LAST_NAMES: Record<GenerateOrderRequestPresident, string> = {
 function getButtonContent(paymentState: PaymentState) {
   switch (paymentState) {
     case "creating_invoice":
-      return { text: "Preparing...", icon: <Loader2 className="w-5 h-5 animate-spin" /> };
+      return "Preparing...";
     case "paying":
-      return { text: "Processing Payment...", icon: <Loader2 className="w-5 h-5 animate-spin" /> };
+      return "Processing Payment...";
     case "paid":
-      return { text: "Payment Confirmed!", icon: <Zap className="w-5 h-5" /> };
+      return "Payment Confirmed!";
     default:
-      return { text: "ISSUE EXECUTIVE ORDER", icon: <PenTool className="w-5 h-5" /> };
+      return "REQUEST EXECUTIVE ORDER";
   }
 }
 
@@ -48,7 +48,7 @@ export function DilemmaForm({
 }: DilemmaFormProps) {
   const lastName = PRESIDENT_LAST_NAMES[president];
   const busy = paymentState !== "idle";
-  const { text, icon } = getButtonContent(paymentState);
+  const text = getButtonContent(paymentState);
 
   return (
     <div className="w-full max-w-2xl mx-auto bg-white rounded-3xl p-8 md:p-12 box-shadow-document relative paper-texture overflow-hidden">
@@ -79,7 +79,7 @@ export function DilemmaForm({
               value={dilemma}
               onChange={(e) => onChange(e.target.value)}
               placeholder="Should I quit my job and vibe code full-time?"
-              className="relative w-full text-lg md:text-xl font-serif p-6 min-h-[160px] bg-background/50 border-2 border-border rounded-xl focus-visible:ring-accent focus-visible:border-accent transition-all resize-none shadow-inner"
+              className="relative w-full text-lg md:text-xl font-serif p-6 bg-background/50 border-2 border-border rounded-xl focus-visible:ring-accent focus-visible:border-accent transition-all resize-none shadow-inner"
               disabled={busy}
             />
           </div>
@@ -91,8 +91,7 @@ export function DilemmaForm({
               className="relative overflow-hidden group px-10 py-5 bg-primary text-white rounded-full font-display font-bold text-lg md:text-xl shadow-[0_10px_20px_-10px_rgba(10,49,97,0.5)] hover:shadow-[0_20px_25px_-5px_rgba(10,49,97,0.4)] hover:-translate-y-1 transition-all duration-300 disabled:opacity-60 disabled:pointer-events-none disabled:transform-none"
             >
               <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
-              <span className="flex items-center gap-3 relative z-10">
-                {icon}
+              <span className="relative z-10">
                 {text}
               </span>
             </button>
@@ -108,8 +107,7 @@ export function DilemmaForm({
             )}
 
             <p className="text-xs text-muted-foreground/50 font-serif flex items-center gap-1.5">
-              <Zap className="w-3 h-3" />
-              10 sat Lightning filing fee
+              ₿100 filing fee
             </p>
           </div>
         </div>

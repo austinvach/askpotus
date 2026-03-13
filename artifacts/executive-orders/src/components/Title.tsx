@@ -27,7 +27,7 @@ export function Title() {
       </p>
 
       {/* Divider */}
-      <div className="flex items-center justify-center gap-4 mt-6 w-full max-w-md">
+      <div className="flex items-center justify-center gap-4 my-6 w-full max-w-md">
         <div className="h-px bg-gradient-to-r from-transparent via-accent to-transparent flex-1 opacity-50" />
       </div>
     </div>
