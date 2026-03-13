@@ -57,6 +57,7 @@ export function DilemmaForm({
   const text = getButtonContent(paymentState);
   const [suggestionIndex, setSuggestionIndex] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const shadowRef = useRef<HTMLDivElement>(null);
 
   const autoResize = useCallback(() => {
     const el = textareaRef.current;
@@ -64,6 +65,22 @@ export function DilemmaForm({
     el.style.height = "auto";
     el.style.height = `${el.scrollHeight}px`;
   }, []);
+
+  // Keep min-height in sync with the rendered placeholder size
+  useEffect(() => {
+    const shadow = shadowRef.current;
+    const textarea = textareaRef.current;
+    if (!shadow || !textarea) return;
+    const cs = window.getComputedStyle(textarea);
+    shadow.style.width = cs.width;
+    shadow.style.font = cs.font;
+    shadow.style.padding = cs.padding;
+    shadow.style.lineHeight = cs.lineHeight;
+    shadow.textContent = PLACEHOLDER_SUGGESTIONS[suggestionIndex];
+    textarea.style.minHeight = `${shadow.scrollHeight}px`;
+    // Also re-run auto-resize so user-typed content always wins if taller
+    autoResize();
+  }, [suggestionIndex, autoResize]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -102,6 +119,11 @@ export function DilemmaForm({
               animate={{ opacity: 1 }}
               transition={{ duration: 0.4 }}
               className="absolute inset-0 pointer-events-none"
+            />
+            <div
+              ref={shadowRef}
+              aria-hidden="true"
+              className="invisible absolute top-0 left-0 pointer-events-none whitespace-pre-wrap break-words overflow-hidden"
             />
             <Textarea
               ref={textareaRef}
