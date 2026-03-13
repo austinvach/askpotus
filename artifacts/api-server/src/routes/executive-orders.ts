@@ -26,22 +26,22 @@ function verifyPreimage(preimage: string, paymentHash: string): boolean {
 const router: IRouter = Router();
 
 const presidentProfiles: Record<string, { name: string; style: string }> = {
-  george_w_bush: {
-    name: "George W. Bush",
-    style: `You are President George W. Bush issuing an official executive order. 
-Write in a folksy, plain-spoken Texas style. Use simple words, occasionally stumble over complex concepts, 
-add heartfelt patriotic sentiments, reference "freedom" and "the American people" often, 
-occasionally mangle a phrase or metaphor in an endearing way. Be sincere and well-meaning but charmingly unpolished. 
-Reference clearing brush at the ranch or Texas when appropriate. Sign off as "George W. Bush, President of the United States."`,
-  },
-  obama: {
-    name: "Barack Obama",
-    style: `You are President Barack Obama issuing an official executive order.
-Write in an eloquent, measured, professorial style. Use long, beautifully constructed sentences with 
-subordinate clauses. Reference the arc of history, American ideals, and bipartisan cooperation. 
-Use phrases like "let me be clear," "make no mistake," and "this is not who we are." 
-Be thoughtful, inspiring, and occasionally use a sports metaphor. Sign off as "Barack Obama, President of the United States."`,
-  },
+  //   george_w_bush: {
+  //     name: "George W. Bush",
+  //     style: `You are President George W. Bush issuing an official executive order.
+  // Write in a folksy, plain-spoken Texas style. Use simple words, occasionally stumble over complex concepts,
+  // add heartfelt patriotic sentiments, reference "freedom" and "the American people" often,
+  // occasionally mangle a phrase or metaphor in an endearing way. Be sincere and well-meaning but charmingly unpolished.
+  // Reference clearing brush at the ranch or Texas when appropriate. Sign off as "George W. Bush, President of the United States."`,
+  //   },
+  //   obama: {
+  //     name: "Barack Obama",
+  //     style: `You are President Barack Obama issuing an official executive order.
+  // Write in an eloquent, measured, professorial style. Use long, beautifully constructed sentences with
+  // subordinate clauses. Reference the arc of history, American ideals, and bipartisan cooperation.
+  // Use phrases like "let me be clear," "make no mistake," and "this is not who we are."
+  // Be thoughtful, inspiring, and occasionally use a sports metaphor. Sign off as "Barack Obama, President of the United States."`,
+  //   },
   trump: {
     name: "Donald Trump",
     style: `You are President Donald Trump issuing an official executive order.
@@ -68,7 +68,9 @@ router.post("/executive-orders/invoice", async (_req, res) => {
     await lnAddress.fetch();
     const invoiceObj = await lnAddress.requestInvoice({ satoshi: SATS_FEE });
     const paymentHash = invoiceObj.paymentHash;
-    pendingPayments.set(paymentHash, { expiresAt: Date.now() + 10 * 60 * 1000 });
+    pendingPayments.set(paymentHash, {
+      expiresAt: Date.now() + 10 * 60 * 1000,
+    });
     res.json({ invoice: invoiceObj.paymentRequest, paymentHash });
   } catch (err) {
     console.error("Invoice creation error:", err);
@@ -80,7 +82,9 @@ router.post("/executive-orders/generate", async (req, res) => {
   try {
     const parsed = GenerateExecutiveOrderBody.safeParse(req.body);
     if (!parsed.success) {
-      res.status(400).json({ error: "Invalid request", details: parsed.error.errors });
+      res
+        .status(400)
+        .json({ error: "Invalid request", details: parsed.error.errors });
       return;
     }
 
@@ -98,7 +102,11 @@ router.post("/executive-orders/generate", async (req, res) => {
 
     const pending = pendingPayments.get(paymentHash);
     if (!pending) {
-      res.status(402).json({ error: "No matching invoice found. Please pay the filing fee first." });
+      res
+        .status(402)
+        .json({
+          error: "No matching invoice found. Please pay the filing fee first.",
+        });
       return;
     }
     if (Date.now() > pending.expiresAt) {

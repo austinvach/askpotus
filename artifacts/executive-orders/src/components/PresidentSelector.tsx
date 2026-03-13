@@ -7,19 +7,26 @@ interface PresidentSelectorProps {
 }
 
 const PRESIDENTS = [
+  // {
+  //   id: GenerateOrderRequestPresident.george_w_bush,
+  //   name: "George W. Bush",
+  //   term: "43rd",
+  //   image: "bush.png",
+  //   color: "from-red-900/80 to-red-700/80",
+  // },
+  // {
+  //   id: GenerateOrderRequestPresident.obama,
+  //   name: "Barack Obama",
+  //   term: "44th",
+  //   image: "obama.png",
+  //   color: "from-blue-900/80 to-blue-700/80",
+  // },
   {
-    id: GenerateOrderRequestPresident.george_w_bush,
-    name: "George W. Bush",
-    term: "43rd",
-    image: "bush.png",
-    color: "from-red-900/80 to-red-700/80",
-  },
-  {
-    id: GenerateOrderRequestPresident.obama,
-    name: "Barack Obama",
-    term: "44th",
-    image: "obama.png",
-    color: "from-blue-900/80 to-blue-700/80",
+    id: GenerateOrderRequestPresident.trump,
+    name: "Donald Trump",
+    term: "45th & 47th",
+    image: "trump.png",
+    color: "from-red-600/80 to-red-500/80",
   },
   {
     id: GenerateOrderRequestPresident.biden,
@@ -27,13 +34,6 @@ const PRESIDENTS = [
     term: "46th",
     image: "biden.png",
     color: "from-blue-700/80 to-blue-500/80",
-  },
-  {
-    id: GenerateOrderRequestPresident.trump,
-    name: "Donald Trump",
-    term: "45th & 47th",
-    image: "trump.png",
-    color: "from-red-600/80 to-red-500/80",
   },
 ];
 
@@ -49,9 +49,7 @@ export function PresidentSelector({ onSelect }: PresidentSelectorProps) {
         </p>
       </div>
 
-      <div
-        className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
-      >
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 justify-center">
         {PRESIDENTS.map((president) => (
           <motion.button
             key={president.id}
