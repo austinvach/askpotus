@@ -74,7 +74,7 @@ export function PresidentSelector({ onSelect }: PresidentSelectorProps) {
           <motion.button
             key={president.id}
             onClick={() => onSelect(president.id)}
-            className="group relative flex flex-col items-center text-left bg-white rounded-2xl overflow-hidden box-shadow-document hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-accent outline-none focus-visible:ring-4 focus-visible:ring-accent/30"
+            className="group relative flex flex-col items-center text-left bg-white rounded-2xl overflow-hidden box-shadow-document transition-all duration-300 border-2 border-transparent hover:border-accent outline-none focus-visible:ring-4 focus-visible:ring-accent/30"
           >
             <div className="w-full aspect-[3/4] relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
