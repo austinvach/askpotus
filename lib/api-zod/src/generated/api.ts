@@ -16,17 +16,25 @@ export const HealthCheckResponse = zod.object({
 });
 
 /**
- * Creates a 10-sat Lightning invoice from the destination address
+ * Creates a 10-sat Lightning invoice via NWC wallet
  * @summary Create a Lightning invoice for the filing fee
  */
 export const CreateInvoiceResponse = zod.object({
   invoice: zod.string().describe("The bolt11 Lightning invoice string"),
   paymentHash: zod
     .string()
-    .describe("The payment hash (hex) for display\/reference"),
-  authToken: zod
-    .string()
-    .describe("Short-lived server-issued token to redeem after payment"),
+    .describe("The payment hash (hex) used to track and verify payment"),
+});
+
+/**
+ * @summary Check if a Lightning invoice has been paid
+ */
+export const CheckPaymentParams = zod.object({
+  paymentHash: zod.coerce.string(),
+});
+
+export const CheckPaymentResponse = zod.object({
+  paid: zod.boolean().describe("Whether the invoice has been settled"),
 });
 
 /**
@@ -40,9 +48,9 @@ export const GenerateExecutiveOrderBody = zod.object({
   dilemma: zod
     .string()
     .describe("The decision or dilemma the user needs help with"),
-  authToken: zod
+  paymentHash: zod
     .string()
-    .describe("Server-issued token proving the invoice was paid"),
+    .describe("The payment hash of the settled Lightning invoice"),
 });
 
 export const GenerateExecutiveOrderResponse = zod.object({

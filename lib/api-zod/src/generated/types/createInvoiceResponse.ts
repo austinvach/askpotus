@@ -9,8 +9,6 @@
 export interface CreateInvoiceResponse {
   /** The bolt11 Lightning invoice string */
   invoice: string;
-  /** The payment hash (hex) for display/reference */
+  /** The payment hash (hex) used to track and verify payment */
   paymentHash: string;
-  /** Short-lived server-issued token to redeem after payment */
-  authToken: string;
 }

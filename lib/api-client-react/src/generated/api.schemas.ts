@@ -16,10 +16,13 @@ export interface ErrorResponse {
 export interface CreateInvoiceResponse {
   /** The bolt11 Lightning invoice string */
   invoice: string;
-  /** The payment hash (hex) for display/reference */
+  /** The payment hash (hex) used to track and verify payment */
   paymentHash: string;
-  /** Short-lived server-issued token to redeem after payment */
-  authToken: string;
+}
+
+export interface CheckPaymentResponse {
+  /** Whether the invoice has been settled */
+  paid: boolean;
 }
 
 /**
@@ -40,8 +43,8 @@ export interface GenerateOrderRequest {
   president: GenerateOrderRequestPresident;
   /** The decision or dilemma the user needs help with */
   dilemma: string;
-  /** Server-issued token proving the invoice was paid */
-  authToken: string;
+  /** The payment hash of the settled Lightning invoice */
+  paymentHash: string;
 }
 
 export interface GenerateOrderResponse {

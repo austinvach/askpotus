@@ -1,27 +1,20 @@
 import { Router, type IRouter } from "express";
 import { randomUUID } from "crypto";
-import { createHash } from "crypto";
+import { NWCClient } from "@getalby/sdk";
 import { openai } from "@workspace/integrations-openai-ai-server";
 import { GenerateExecutiveOrderBody } from "@workspace/api-zod";
 import { db, executiveOrdersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { LightningAddress } from "@getalby/lightning-tools";
 
-const LIGHTNING_ADDRESS = "austinvach@cash.app";
 const SATS_FEE = 10;
 
-const pendingPayments = new Map<string, { expiresAt: number }>();
-
-function verifyPreimage(preimage: string, paymentHash: string): boolean {
-  try {
-    const computed = createHash("sha256")
-      .update(Buffer.from(preimage, "hex"))
-      .digest("hex");
-    return computed === paymentHash;
-  } catch {
-    return false;
-  }
+function getNWCClient() {
+  const url = process.env.NWC_URL;
+  if (!url) throw new Error("NWC_URL not configured");
+  return new NWCClient({ nostrWalletConnectUrl: url });
 }
+
+const usedPaymentHashes = new Set<string>();
 
 const router: IRouter = Router();
 
@@ -63,22 +56,41 @@ Sign off as "Joseph R. Biden Jr., President of the United States."`,
 };
 
 router.post("/executive-orders/invoice", async (_req, res) => {
+  let client: NWCClient | null = null;
   try {
-    const lnAddress = new LightningAddress(LIGHTNING_ADDRESS);
-    await lnAddress.fetch();
-    const invoiceObj = await lnAddress.requestInvoice({ satoshi: SATS_FEE });
-    const paymentHash = invoiceObj.paymentHash;
-    pendingPayments.set(paymentHash, {
-      expiresAt: Date.now() + 10 * 60 * 1000,
+    client = getNWCClient();
+    const tx = await client.makeInvoice({
+      amount: SATS_FEE * 1000,
+      description: "Presidential Executive Order Filing Fee",
+      expiry: 600,
     });
-    res.json({ invoice: invoiceObj.paymentRequest, paymentHash });
+    res.json({ invoice: tx.invoice, paymentHash: tx.payment_hash });
   } catch (err) {
     console.error("Invoice creation error:", err);
     res.status(500).json({ error: "Failed to create invoice" });
+  } finally {
+    client?.close();
+  }
+});
+
+router.get("/executive-orders/check-payment/:paymentHash", async (req, res) => {
+  let client: NWCClient | null = null;
+  try {
+    const { paymentHash } = req.params;
+    client = getNWCClient();
+    const tx = await client.lookupInvoice({ payment_hash: paymentHash });
+    const paid = !!tx.settled_at;
+    res.json({ paid });
+  } catch (err) {
+    console.error("Check payment error:", err);
+    res.json({ paid: false });
+  } finally {
+    client?.close();
   }
 });
 
 router.post("/executive-orders/generate", async (req, res) => {
+  let client: NWCClient | null = null;
   try {
     const parsed = GenerateExecutiveOrderBody.safeParse(req.body);
     if (!parsed.success) {
@@ -88,7 +100,7 @@ router.post("/executive-orders/generate", async (req, res) => {
       return;
     }
 
-    const { president, dilemma, preimage } = parsed.data;
+    const { president, dilemma, paymentHash } = parsed.data;
     const profile = presidentProfiles[president];
 
     if (!profile) {
@@ -96,30 +108,26 @@ router.post("/executive-orders/generate", async (req, res) => {
       return;
     }
 
-    const paymentHash = createHash("sha256")
-      .update(Buffer.from(preimage, "hex"))
-      .digest("hex");
-
-    const pending = pendingPayments.get(paymentHash);
-    if (!pending) {
-      res
-        .status(402)
-        .json({
-          error: "No matching invoice found. Please pay the filing fee first.",
-        });
-      return;
-    }
-    if (Date.now() > pending.expiresAt) {
-      pendingPayments.delete(paymentHash);
-      res.status(402).json({ error: "Invoice expired. Please start over." });
-      return;
-    }
-    if (!verifyPreimage(preimage, paymentHash)) {
-      res.status(402).json({ error: "Invalid payment proof." });
+    if (usedPaymentHashes.has(paymentHash)) {
+      res.status(402).json({ error: "This invoice has already been used." });
       return;
     }
 
-    pendingPayments.delete(paymentHash);
+    client = getNWCClient();
+    let tx;
+    try {
+      tx = await client.lookupInvoice({ payment_hash: paymentHash });
+    } catch {
+      res.status(402).json({ error: "Invoice not found. Please pay first." });
+      return;
+    }
+
+    if (!tx.settled_at) {
+      res.status(402).json({ error: "Invoice not yet paid." });
+      return;
+    }
+
+    usedPaymentHashes.add(paymentHash);
 
     const orderNumber = `EO ${Math.floor(10000 + Math.random() * 89999).toLocaleString()}`;
     const now = new Date();
@@ -189,6 +197,8 @@ IMPORTANT: Return ONLY valid JSON, no other text.`;
   } catch (err) {
     console.error("Executive order generation error:", err);
     res.status(500).json({ error: "Failed to generate executive order" });
+  } finally {
+    client?.close();
   }
 });
 

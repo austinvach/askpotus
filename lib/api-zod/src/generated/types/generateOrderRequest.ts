@@ -12,6 +12,6 @@ export interface GenerateOrderRequest {
   president: GenerateOrderRequestPresident;
   /** The decision or dilemma the user needs help with */
   dilemma: string;
-  /** Server-issued token proving the invoice was paid */
-  authToken: string;
+  /** The payment hash of the settled Lightning invoice */
+  paymentHash: string;
 }

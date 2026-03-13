@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./checkPaymentResponse";
 export * from "./createInvoiceResponse";
 export * from "./errorResponse";
 export * from "./generateOrderRequest";

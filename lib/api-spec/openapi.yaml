@@ -31,7 +31,7 @@ paths:
       operationId: createInvoice
       tags: [executive-orders]
       summary: Create a Lightning invoice for the filing fee
-      description: Creates a 10-sat Lightning invoice from the destination address
+      description: Creates a 10-sat Lightning invoice via NWC wallet
       responses:
         "200":
           description: Invoice created
@@ -39,6 +39,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CreateInvoiceResponse"
+  /executive-orders/check-payment/{paymentHash}:
+    get:
+      operationId: checkPayment
+      tags: [executive-orders]
+      summary: Check if a Lightning invoice has been paid
+      parameters:
+        - name: paymentHash
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Payment status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckPaymentResponse"
   /executive-orders/generate:
     post:
       operationId: generateExecutiveOrder
@@ -106,14 +124,18 @@ components:
           description: The bolt11 Lightning invoice string
         paymentHash:
           type: string
-          description: The payment hash (hex) for display/reference
-        authToken:
-          type: string
-          description: Short-lived server-issued token to redeem after payment
+          description: The payment hash (hex) used to track and verify payment
       required:
         - invoice
         - paymentHash
-        - authToken
+    CheckPaymentResponse:
+      type: object
+      properties:
+        paid:
+          type: boolean
+          description: Whether the invoice has been settled
+      required:
+        - paid
     GenerateOrderRequest:
       type: object
       properties:
@@ -124,13 +146,13 @@ components:
         dilemma:
           type: string
           description: The decision or dilemma the user needs help with
-        authToken:
+        paymentHash:
           type: string
-          description: Server-issued token proving the invoice was paid
+          description: The payment hash of the settled Lightning invoice
       required:
         - president
         - dilemma
-        - authToken
+        - paymentHash
     GenerateOrderResponse:
       type: object
       properties:

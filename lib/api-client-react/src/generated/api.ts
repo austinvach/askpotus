@@ -17,6 +17,7 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  CheckPaymentResponse,
   CreateInvoiceResponse,
   ErrorResponse,
   GenerateOrderRequest,
@@ -110,7 +111,7 @@ export function useHealthCheck<
 }
 
 /**
- * Creates a 10-sat Lightning invoice from the destination address
+ * Creates a 10-sat Lightning invoice via NWC wallet
  * @summary Create a Lightning invoice for the filing fee
  */
 export const getCreateInvoiceUrl = () => {
@@ -190,6 +191,94 @@ export const useCreateInvoice = <
 > => {
   return useMutation(getCreateInvoiceMutationOptions(options));
 };
+
+/**
+ * @summary Check if a Lightning invoice has been paid
+ */
+export const getCheckPaymentUrl = (paymentHash: string) => {
+  return `/api/executive-orders/check-payment/${paymentHash}`;
+};
+
+export const checkPayment = async (
+  paymentHash: string,
+  options?: RequestInit,
+): Promise<CheckPaymentResponse> => {
+  return customFetch<CheckPaymentResponse>(getCheckPaymentUrl(paymentHash), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getCheckPaymentQueryKey = (paymentHash: string) => {
+  return [`/api/executive-orders/check-payment/${paymentHash}`] as const;
+};
+
+export const getCheckPaymentQueryOptions = <
+  TData = Awaited<ReturnType<typeof checkPayment>>,
+  TError = ErrorType<unknown>,
+>(
+  paymentHash: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof checkPayment>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getCheckPaymentQueryKey(paymentHash);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof checkPayment>>> = ({
+    signal,
+  }) => checkPayment(paymentHash, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!paymentHash,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof checkPayment>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type CheckPaymentQueryResult = NonNullable<
+  Awaited<ReturnType<typeof checkPayment>>
+>;
+export type CheckPaymentQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Check if a Lightning invoice has been paid
+ */
+
+export function useCheckPayment<
+  TData = Awaited<ReturnType<typeof checkPayment>>,
+  TError = ErrorType<unknown>,
+>(
+  paymentHash: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof checkPayment>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getCheckPaymentQueryOptions(paymentHash, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * Generates a mock executive order in the style of the chosen president

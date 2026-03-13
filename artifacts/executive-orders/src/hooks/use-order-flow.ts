@@ -1,6 +1,6 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useLocation } from "wouter";
-import { useGenerateExecutiveOrder, useCreateInvoice } from "@workspace/api-client-react";
+import { useGenerateExecutiveOrder, useCreateInvoice, checkPayment } from "@workspace/api-client-react";
 import type { GenerateOrderRequestPresident, GenerateOrderResponse } from "@workspace/api-client-react/src/generated/api.schemas";
 import { useToast } from "@/hooks/use-toast";
 import { launchPaymentModal, closeModal } from "@getalby/bitcoin-connect-react";
@@ -17,10 +17,19 @@ export function useOrderFlow() {
   const [paymentState, setPaymentState] = useState<PaymentState>("idle");
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [, navigate] = useLocation();
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const paidRef = useRef(false);
 
   const { toast } = useToast();
   const generateMutation = useGenerateExecutiveOrder();
   const createInvoiceMutation = useCreateInvoice();
+
+  const stopPolling = () => {
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+  };
 
   const handleSelectPresident = (president: GenerateOrderRequestPresident) => {
     setSelectedPresident(president);
@@ -28,12 +37,14 @@ export function useOrderFlow() {
   };
 
   const handleBack = () => {
+    stopPolling();
     if (step === "WRITE_DILEMMA") {
       closeModal();
       setStep("SELECT_PRESIDENT");
       setSelectedPresident(null);
       setPaymentState("idle");
       setPaymentError(null);
+      paidRef.current = false;
     } else if (step === "RESULT") {
       setStep("SELECT_PRESIDENT");
       setSelectedPresident(null);
@@ -41,6 +52,7 @@ export function useOrderFlow() {
       setResult(null);
       setPaymentState("idle");
       setPaymentError(null);
+      paidRef.current = false;
     }
   };
 
@@ -55,14 +67,18 @@ export function useOrderFlow() {
     frame();
   };
 
-  const generateOrder = useCallback(async (preimage: string) => {
+  const generateOrder = useCallback(async (paymentHash: string) => {
+    if (paidRef.current) return;
+    paidRef.current = true;
+    stopPolling();
+    closeModal();
     setStep("GENERATING");
     try {
       const response = await generateMutation.mutateAsync({
         data: {
           president: selectedPresident!,
           dilemma: dilemma.trim(),
-          preimage,
+          paymentHash,
         }
       });
       setPaymentState("paid");
@@ -72,6 +88,7 @@ export function useOrderFlow() {
       setTimeout(fireConfetti, 500);
     } catch (err: unknown) {
       console.error("Order generation error:", err);
+      paidRef.current = false;
       toast({
         title: "Bureaucratic Error",
         description: "The Oval Office could not process your request at this time.",
@@ -94,6 +111,7 @@ export function useOrderFlow() {
 
     setPaymentError(null);
     setPaymentState("creating_invoice");
+    paidRef.current = false;
 
     let invoice: string;
     let paymentHash: string;
@@ -113,20 +131,33 @@ export function useOrderFlow() {
 
     launchPaymentModal({
       invoice,
-      onPaid: ({ preimage }) => {
-        void generateOrder(preimage);
+      onPaid: () => {
+        void generateOrder(paymentHash);
       },
       onCancelled: () => {
+        stopPolling();
+        paidRef.current = false;
         setPaymentState("idle");
         setPaymentError(null);
       },
     });
 
-    void paymentHash; // used server-side for verification via preimage
+    pollIntervalRef.current = setInterval(async () => {
+      try {
+        const result = await checkPayment(paymentHash);
+        if (result.paid) {
+          void generateOrder(paymentHash);
+        }
+      } catch {
+        // keep polling
+      }
+    }, 2000);
   };
 
   const cancelPayment = () => {
+    stopPolling();
     closeModal();
+    paidRef.current = false;
     setPaymentState("idle");
     setPaymentError(null);
   };
