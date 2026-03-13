@@ -37,16 +37,6 @@ const PRESIDENTS = [
   },
 ];
 
-const container = {
-  hidden: { opacity: 1 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0,
-    },
-  },
-};
-
 export function PresidentSelector({ onSelect }: PresidentSelectorProps) {
   return (
     <div className="w-full max-w-6xl mx-auto px-4">
@@ -60,9 +50,6 @@ export function PresidentSelector({ onSelect }: PresidentSelectorProps) {
       </div>
 
       <div
-        variants={container}
-        initial="hidden"
-        animate="show"
         className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6"
       >
         {PRESIDENTS.map((president) => (
