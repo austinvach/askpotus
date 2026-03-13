@@ -26,6 +26,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /executive-orders/invoice:
+    post:
+      operationId: createInvoice
+      tags: [executive-orders]
+      summary: Create a Lightning invoice for the filing fee
+      description: Creates a 10-sat Lightning invoice from the destination address
+      responses:
+        "200":
+          description: Invoice created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateInvoiceResponse"
   /executive-orders/generate:
     post:
       operationId: generateExecutiveOrder
@@ -85,6 +98,18 @@ components:
           type: string
       required:
         - error
+    CreateInvoiceResponse:
+      type: object
+      properties:
+        invoice:
+          type: string
+          description: The bolt11 Lightning invoice string
+        paymentHash:
+          type: string
+          description: The payment hash (hex) used to verify payment
+      required:
+        - invoice
+        - paymentHash
     GenerateOrderRequest:
       type: object
       properties:
@@ -95,9 +120,13 @@ components:
         dilemma:
           type: string
           description: The decision or dilemma the user needs help with
+        preimage:
+          type: string
+          description: The payment preimage proving the Lightning invoice was paid
       required:
         - president
         - dilemma
+        - preimage
     GenerateOrderResponse:
       type: object
       properties:

@@ -1,8 +1,9 @@
 import { useState, useCallback } from "react";
 import { useLocation } from "wouter";
-import { useGenerateExecutiveOrder } from "@workspace/api-client-react";
+import { useGenerateExecutiveOrder, useCreateInvoice } from "@workspace/api-client-react";
 import type { GenerateOrderRequestPresident, GenerateOrderResponse } from "@workspace/api-client-react/src/generated/api.schemas";
 import { useToast } from "@/hooks/use-toast";
+import { launchPaymentModal, closeModal } from "@getalby/bitcoin-connect-react";
 import confetti from "canvas-confetti";
 
 export type FlowStep = "SELECT_PRESIDENT" | "WRITE_DILEMMA" | "GENERATING" | "RESULT";
@@ -19,6 +20,7 @@ export function useOrderFlow() {
 
   const { toast } = useToast();
   const generateMutation = useGenerateExecutiveOrder();
+  const createInvoiceMutation = useCreateInvoice();
 
   const handleSelectPresident = (president: GenerateOrderRequestPresident) => {
     setSelectedPresident(president);
@@ -27,6 +29,7 @@ export function useOrderFlow() {
 
   const handleBack = () => {
     if (step === "WRITE_DILEMMA") {
+      closeModal();
       setStep("SELECT_PRESIDENT");
       setSelectedPresident(null);
       setPaymentState("idle");
@@ -45,26 +48,41 @@ export function useOrderFlow() {
     const duration = 3000;
     const end = Date.now() + duration;
     const frame = () => {
-      confetti({
-        particleCount: 5,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0 },
-        colors: ['#0A3161', '#B31942', '#ffffff']
-      });
-      confetti({
-        particleCount: 5,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1 },
-        colors: ['#0A3161', '#B31942', '#ffffff']
-      });
+      confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#0A3161', '#B31942', '#ffffff'] });
+      confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#0A3161', '#B31942', '#ffffff'] });
       if (Date.now() < end) requestAnimationFrame(frame);
     };
     frame();
   };
 
-  const submitDilemma = useCallback(async () => {
+  const generateOrder = useCallback(async (preimage: string) => {
+    setStep("GENERATING");
+    try {
+      const response = await generateMutation.mutateAsync({
+        data: {
+          president: selectedPresident!,
+          dilemma: dilemma.trim(),
+          preimage,
+        }
+      });
+      setPaymentState("paid");
+      setResult(response);
+      setStep("RESULT");
+      navigate(`/order/${response.id}`);
+      setTimeout(fireConfetti, 500);
+    } catch (err: unknown) {
+      console.error("Order generation error:", err);
+      toast({
+        title: "Bureaucratic Error",
+        description: "The Oval Office could not process your request at this time.",
+        variant: "destructive"
+      });
+      setStep("WRITE_DILEMMA");
+      setPaymentState("idle");
+    }
+  }, [selectedPresident, dilemma, generateMutation, navigate, toast]);
+
+  const submitDilemma = async () => {
     if (!selectedPresident || !dilemma.trim()) {
       toast({
         title: "Incomplete Request",
@@ -75,39 +93,42 @@ export function useOrderFlow() {
     }
 
     setPaymentError(null);
-    setPaymentState("paying");
-    setStep("GENERATING");
+    setPaymentState("creating_invoice");
+
+    let invoice: string;
+    let paymentHash: string;
 
     try {
-      const response = await generateMutation.mutateAsync({
-        data: {
-          president: selectedPresident,
-          dilemma: dilemma.trim()
-        }
-      });
-      setPaymentState("paid");
-      setResult(response);
-      setStep("RESULT");
-      navigate(`/order/${response.id}`);
-      setTimeout(fireConfetti, 500);
-    } catch (err: unknown) {
-      console.error("Order error:", err);
-      const msg = err instanceof Error ? err.message : String(err);
-      setPaymentError(msg || "The Oval Office could not process your request.");
+      const invoiceData = await createInvoiceMutation.mutateAsync({});
+      invoice = invoiceData.invoice;
+      paymentHash = invoiceData.paymentHash;
+    } catch (err) {
+      console.error("Invoice error:", err);
+      setPaymentError("Could not create payment invoice. Please try again.");
       setPaymentState("idle");
-      setStep("WRITE_DILEMMA");
-      toast({
-        title: "Bureaucratic Error",
-        description: "The Oval Office could not process your request at this time.",
-        variant: "destructive"
-      });
+      return;
     }
-  }, [selectedPresident, dilemma, generateMutation, navigate, toast]);
+
+    setPaymentState("paying");
+
+    launchPaymentModal({
+      invoice,
+      onPaid: ({ preimage }) => {
+        void generateOrder(preimage);
+      },
+      onCancelled: () => {
+        setPaymentState("idle");
+        setPaymentError(null);
+      },
+    });
+
+    void paymentHash; // used server-side for verification via preimage
+  };
 
   const cancelPayment = () => {
+    closeModal();
     setPaymentState("idle");
     setPaymentError(null);
-    setStep("WRITE_DILEMMA");
   };
 
   return {

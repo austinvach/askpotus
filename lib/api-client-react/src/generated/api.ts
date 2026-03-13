@@ -17,6 +17,7 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  CreateInvoiceResponse,
   ErrorResponse,
   GenerateOrderRequest,
   GenerateOrderResponse,
@@ -107,6 +108,88 @@ export function useHealthCheck<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * Creates a 10-sat Lightning invoice from the destination address
+ * @summary Create a Lightning invoice for the filing fee
+ */
+export const getCreateInvoiceUrl = () => {
+  return `/api/executive-orders/invoice`;
+};
+
+export const createInvoice = async (
+  options?: RequestInit,
+): Promise<CreateInvoiceResponse> => {
+  return customFetch<CreateInvoiceResponse>(getCreateInvoiceUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getCreateInvoiceMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createInvoice>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createInvoice>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["createInvoice"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createInvoice>>,
+    void
+  > = () => {
+    return createInvoice(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateInvoiceMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createInvoice>>
+>;
+
+export type CreateInvoiceMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a Lightning invoice for the filing fee
+ */
+export const useCreateInvoice = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createInvoice>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createInvoice>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getCreateInvoiceMutationOptions(options));
+};
 
 /**
  * Generates a mock executive order in the style of the chosen president

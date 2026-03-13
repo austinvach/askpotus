@@ -12,4 +12,6 @@ export interface GenerateOrderRequest {
   president: GenerateOrderRequestPresident;
   /** The decision or dilemma the user needs help with */
   dilemma: string;
+  /** The payment preimage proving the Lightning invoice was paid */
+  preimage: string;
 }

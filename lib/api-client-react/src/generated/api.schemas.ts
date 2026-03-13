@@ -13,6 +13,13 @@ export interface ErrorResponse {
   error: string;
 }
 
+export interface CreateInvoiceResponse {
+  /** The bolt11 Lightning invoice string */
+  invoice: string;
+  /** The payment hash (hex) used to verify payment */
+  paymentHash: string;
+}
+
 /**
  * The president to impersonate
  */
@@ -31,6 +38,8 @@ export interface GenerateOrderRequest {
   president: GenerateOrderRequestPresident;
   /** The decision or dilemma the user needs help with */
   dilemma: string;
+  /** The payment preimage proving the Lightning invoice was paid */
+  preimage: string;
 }
 
 export interface GenerateOrderResponse {

@@ -1,31 +1,26 @@
 import { Router, type IRouter } from "express";
 import { randomUUID } from "crypto";
+import { createHash } from "crypto";
 import { openai } from "@workspace/integrations-openai-ai-server";
 import { GenerateExecutiveOrderBody } from "@workspace/api-zod";
 import { db, executiveOrdersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { LN } from "@getalby/sdk";
 import { LightningAddress } from "@getalby/lightning-tools";
 
 const LIGHTNING_ADDRESS = "austinvach@cash.app";
 const SATS_FEE = 10;
 
-let lnClient: LN | null = null;
-function getLNClient(): LN {
-  if (!lnClient) {
-    const nwcUrl = process.env.NWC_URL;
-    if (!nwcUrl) throw new Error("NWC_URL not configured");
-    lnClient = new LN(nwcUrl);
-  }
-  return lnClient;
-}
+const pendingPayments = new Map<string, { expiresAt: number }>();
 
-async function payFee(): Promise<void> {
-  const lnAddress = new LightningAddress(LIGHTNING_ADDRESS);
-  await lnAddress.fetch();
-  const invoice = await lnAddress.requestInvoice({ satoshi: SATS_FEE });
-  const ln = getLNClient();
-  await ln.pay(invoice.paymentRequest);
+function verifyPreimage(preimage: string, paymentHash: string): boolean {
+  try {
+    const computed = createHash("sha256")
+      .update(Buffer.from(preimage, "hex"))
+      .digest("hex");
+    return computed === paymentHash;
+  } catch {
+    return false;
+  }
 }
 
 const router: IRouter = Router();
@@ -67,6 +62,20 @@ Sign off as "Joseph R. Biden Jr., President of the United States."`,
   },
 };
 
+router.post("/executive-orders/invoice", async (_req, res) => {
+  try {
+    const lnAddress = new LightningAddress(LIGHTNING_ADDRESS);
+    await lnAddress.fetch();
+    const invoiceObj = await lnAddress.requestInvoice({ satoshi: SATS_FEE });
+    const paymentHash = invoiceObj.paymentHash;
+    pendingPayments.set(paymentHash, { expiresAt: Date.now() + 10 * 60 * 1000 });
+    res.json({ invoice: invoiceObj.paymentRequest, paymentHash });
+  } catch (err) {
+    console.error("Invoice creation error:", err);
+    res.status(500).json({ error: "Failed to create invoice" });
+  }
+});
+
 router.post("/executive-orders/generate", async (req, res) => {
   try {
     const parsed = GenerateExecutiveOrderBody.safeParse(req.body);
@@ -75,7 +84,7 @@ router.post("/executive-orders/generate", async (req, res) => {
       return;
     }
 
-    const { president, dilemma } = parsed.data;
+    const { president, dilemma, preimage } = parsed.data;
     const profile = presidentProfiles[president];
 
     if (!profile) {
@@ -83,14 +92,26 @@ router.post("/executive-orders/generate", async (req, res) => {
       return;
     }
 
-    try {
-      await payFee();
-    } catch (payErr) {
-      console.error("Payment error:", payErr);
-      const msg = payErr instanceof Error ? payErr.message : String(payErr);
-      res.status(402).json({ error: "Payment failed", details: msg });
+    const paymentHash = createHash("sha256")
+      .update(Buffer.from(preimage, "hex"))
+      .digest("hex");
+
+    const pending = pendingPayments.get(paymentHash);
+    if (!pending) {
+      res.status(402).json({ error: "No matching invoice found. Please pay the filing fee first." });
       return;
     }
+    if (Date.now() > pending.expiresAt) {
+      pendingPayments.delete(paymentHash);
+      res.status(402).json({ error: "Invoice expired. Please start over." });
+      return;
+    }
+    if (!verifyPreimage(preimage, paymentHash)) {
+      res.status(402).json({ error: "Invalid payment proof." });
+      return;
+    }
+
+    pendingPayments.delete(paymentHash);
 
     const orderNumber = `EO ${Math.floor(10000 + Math.random() * 89999).toLocaleString()}`;
     const now = new Date();

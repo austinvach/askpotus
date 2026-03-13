@@ -16,6 +16,17 @@ export const HealthCheckResponse = zod.object({
 });
 
 /**
+ * Creates a 10-sat Lightning invoice from the destination address
+ * @summary Create a Lightning invoice for the filing fee
+ */
+export const CreateInvoiceResponse = zod.object({
+  invoice: zod.string().describe("The bolt11 Lightning invoice string"),
+  paymentHash: zod
+    .string()
+    .describe("The payment hash (hex) used to verify payment"),
+});
+
+/**
  * Generates a mock executive order in the style of the chosen president
  * @summary Generate a presidential executive order
  */
@@ -26,6 +37,9 @@ export const GenerateExecutiveOrderBody = zod.object({
   dilemma: zod
     .string()
     .describe("The decision or dilemma the user needs help with"),
+  preimage: zod
+    .string()
+    .describe("The payment preimage proving the Lightning invoice was paid"),
 });
 
 export const GenerateExecutiveOrderResponse = zod.object({
