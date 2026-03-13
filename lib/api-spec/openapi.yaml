@@ -106,10 +106,14 @@ components:
           description: The bolt11 Lightning invoice string
         paymentHash:
           type: string
-          description: The payment hash (hex) used to verify payment
+          description: The payment hash (hex) for display/reference
+        authToken:
+          type: string
+          description: Short-lived server-issued token to redeem after payment
       required:
         - invoice
         - paymentHash
+        - authToken
     GenerateOrderRequest:
       type: object
       properties:
@@ -120,13 +124,13 @@ components:
         dilemma:
           type: string
           description: The decision or dilemma the user needs help with
-        preimage:
+        authToken:
           type: string
-          description: The payment preimage proving the Lightning invoice was paid
+          description: Server-issued token proving the invoice was paid
       required:
         - president
         - dilemma
-        - preimage
+        - authToken
     GenerateOrderResponse:
       type: object
       properties:

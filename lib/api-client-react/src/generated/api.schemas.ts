@@ -16,8 +16,10 @@ export interface ErrorResponse {
 export interface CreateInvoiceResponse {
   /** The bolt11 Lightning invoice string */
   invoice: string;
-  /** The payment hash (hex) used to verify payment */
+  /** The payment hash (hex) for display/reference */
   paymentHash: string;
+  /** Short-lived server-issued token to redeem after payment */
+  authToken: string;
 }
 
 /**
@@ -38,8 +40,8 @@ export interface GenerateOrderRequest {
   president: GenerateOrderRequestPresident;
   /** The decision or dilemma the user needs help with */
   dilemma: string;
-  /** The payment preimage proving the Lightning invoice was paid */
-  preimage: string;
+  /** Server-issued token proving the invoice was paid */
+  authToken: string;
 }
 
 export interface GenerateOrderResponse {

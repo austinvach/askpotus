@@ -23,7 +23,10 @@ export const CreateInvoiceResponse = zod.object({
   invoice: zod.string().describe("The bolt11 Lightning invoice string"),
   paymentHash: zod
     .string()
-    .describe("The payment hash (hex) used to verify payment"),
+    .describe("The payment hash (hex) for display\/reference"),
+  authToken: zod
+    .string()
+    .describe("Short-lived server-issued token to redeem after payment"),
 });
 
 /**
@@ -37,9 +40,9 @@ export const GenerateExecutiveOrderBody = zod.object({
   dilemma: zod
     .string()
     .describe("The decision or dilemma the user needs help with"),
-  preimage: zod
+  authToken: zod
     .string()
-    .describe("The payment preimage proving the Lightning invoice was paid"),
+    .describe("Server-issued token proving the invoice was paid"),
 });
 
 export const GenerateExecutiveOrderResponse = zod.object({
