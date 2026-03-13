@@ -49,7 +49,13 @@ const container = {
 
 export function PresidentSelector({ onSelect }: PresidentSelectorProps) {
   return (
-    <div className="w-full max-w-6xl mx-auto px-4">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      className="w-full max-w-6xl mx-auto px-4"
+    >
       <div className="text-center mb-6">
         <h2 className="text-2xl font-display font-semibold text-foreground">
           Select Your Commander in Chief
@@ -91,6 +97,6 @@ export function PresidentSelector({ onSelect }: PresidentSelectorProps) {
           </motion.button>
         ))}
       </motion.div>
-    </div>
+    </motion.div>
   );
 }

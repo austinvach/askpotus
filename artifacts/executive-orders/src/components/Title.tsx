@@ -1,9 +1,16 @@
 import React from "react";
 import { Link } from "wouter";
+import { motion } from "framer-motion";
 
 export function Title() {
   return (
-    <div className="w-full flex flex-col items-center justify-center text-center">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      className="w-full flex flex-col items-center justify-center text-center"
+    >
       {/* Presidential Seal */}
       <div className="pb-4">
         <Link href="/" className="hover:opacity-90 transition-opacity">
@@ -30,6 +37,6 @@ export function Title() {
       <div className="flex items-center justify-center gap-4 mt-6 w-full max-w-md">
         <div className="h-px bg-gradient-to-r from-transparent via-accent to-transparent flex-1 opacity-50" />
       </div>
-    </div>
+    </motion.div>
   );
 }
