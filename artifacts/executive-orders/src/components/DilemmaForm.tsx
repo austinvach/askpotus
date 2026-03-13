@@ -100,6 +100,7 @@ export function DilemmaForm({
               onChange={(e) => onChange(e.target.value)}
               placeholder={PLACEHOLDER_SUGGESTIONS[suggestionIndex]}
               className="relative w-full text-lg md:text-xl font-serif p-6 bg-background/50 border-2 border-border rounded-xl focus-visible:ring-accent focus-visible:border-accent transition-all resize-none shadow-inner placeholder:text-muted-foreground/30"
+              rows={5}
               disabled={busy}
             />
           </div>
