@@ -6,11 +6,9 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import type { PaymentState } from "@/hooks/use-order-flow";
 
 const PLACEHOLDER_SUGGESTIONS = [
-  "Should I quit my job and code full-time?",
-  "Is it time to learn a new programming language?",
-  "Should I accept that job offer?",
-  "Is my startup idea viable?",
-  "Should I focus on work-life balance?",
+  "Should I eat a pizza or salad tonight?",
+  "Should I quit my job and start vibe coding full-time?",
+  "Is a hot dog a sandwich?",
 ];
 
 interface DilemmaFormProps {

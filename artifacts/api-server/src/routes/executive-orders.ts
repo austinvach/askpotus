@@ -85,7 +85,7 @@ The order should be formally structured but hilarious in its application of pres
 
 Format your response as a JSON object with these fields:
 - "title": A grandiose official-sounding title for the executive order (all caps, related to the dilemma)
-- "body": The full text of the executive order (3-5 paragraphs, using proper executive order language like "WHEREAS", "NOW, THEREFORE", "BE IT HEREBY ORDERED", etc., but applied humorously to the personal dilemma). Should be 200-350 words. End with a clear YES or NO answer to the dilemma disguised in presidential language.
+- "body": The full text of the executive order (3-5 paragraphs, using proper executive order language like "WHEREAS", "NOW, THEREFORE", "BE IT HEREBY ORDERED", etc., but applied humorously to the personal dilemma). Should be 100-200 words. End with a clear YES or NO answer to the dilemma disguised in presidential language.
 
 IMPORTANT: Return ONLY valid JSON, no other text.`;
 
