@@ -3,25 +3,10 @@ import { useLocation } from "wouter";
 import { useGenerateExecutiveOrder } from "@workspace/api-client-react";
 import type { GenerateOrderRequestPresident, GenerateOrderResponse } from "@workspace/api-client-react/src/generated/api.schemas";
 import { useToast } from "@/hooks/use-toast";
-import { LN } from "@getalby/sdk";
-import { LightningAddress } from "@getalby/lightning-tools";
 import confetti from "canvas-confetti";
 
 export type FlowStep = "SELECT_PRESIDENT" | "WRITE_DILEMMA" | "GENERATING" | "RESULT";
 export type PaymentState = "idle" | "creating_invoice" | "paying" | "paid";
-
-const LIGHTNING_ADDRESS = "austinvach@cash.app";
-
-let lnClient: LN | null = null;
-
-async function getLNClient(): Promise<LN> {
-  if (lnClient) return lnClient;
-  const res = await fetch("/api/executive-orders/nwc-config");
-  if (!res.ok) throw new Error("Payment not configured");
-  const { nwcUrl } = await res.json();
-  lnClient = new LN(nwcUrl);
-  return lnClient;
-}
 
 export function useOrderFlow() {
   const [step, setStep] = useState<FlowStep>("SELECT_PRESIDENT");
@@ -79,31 +64,7 @@ export function useOrderFlow() {
     frame();
   };
 
-  const generateOrder = useCallback(async () => {
-    setStep("GENERATING");
-    try {
-      const response = await generateMutation.mutateAsync({
-        data: {
-          president: selectedPresident!,
-          dilemma: dilemma.trim()
-        }
-      });
-      setResult(response);
-      setStep("RESULT");
-      navigate(`/order/${response.id}`);
-      setTimeout(fireConfetti, 500);
-    } catch {
-      toast({
-        title: "Bureaucratic Error",
-        description: "The Oval Office could not process your request at this time.",
-        variant: "destructive"
-      });
-      setStep("WRITE_DILEMMA");
-      setPaymentState("idle");
-    }
-  }, [selectedPresident, dilemma, generateMutation, navigate, toast]);
-
-  const submitDilemma = async () => {
+  const submitDilemma = useCallback(async () => {
     if (!selectedPresident || !dilemma.trim()) {
       toast({
         title: "Incomplete Request",
@@ -114,35 +75,39 @@ export function useOrderFlow() {
     }
 
     setPaymentError(null);
-    setPaymentState("creating_invoice");
+    setPaymentState("paying");
+    setStep("GENERATING");
 
     try {
-      const lnAddress = new LightningAddress(LIGHTNING_ADDRESS);
-      await lnAddress.fetch();
-      const invoiceObj = await lnAddress.requestInvoice({ satoshi: 10 });
-      console.log("LNURL invoice fetched from", LIGHTNING_ADDRESS, ":", invoiceObj.paymentRequest.slice(0, 40) + "...");
-
-      setPaymentState("paying");
-
-      const ln = await getLNClient();
-      console.log("Paying invoice via NWC wallet...");
-      const payResult = await ln.pay(invoiceObj.paymentRequest);
-      console.log("Payment complete! Preimage:", payResult.preimage?.slice(0, 16) + "...");
-
+      const response = await generateMutation.mutateAsync({
+        data: {
+          president: selectedPresident,
+          dilemma: dilemma.trim()
+        }
+      });
       setPaymentState("paid");
-      await generateOrder();
-
+      setResult(response);
+      setStep("RESULT");
+      navigate(`/order/${response.id}`);
+      setTimeout(fireConfetti, 500);
     } catch (err: unknown) {
-      console.error("Payment error:", err);
+      console.error("Order error:", err);
       const msg = err instanceof Error ? err.message : String(err);
-      setPaymentError(msg || "Payment failed.");
+      setPaymentError(msg || "The Oval Office could not process your request.");
       setPaymentState("idle");
+      setStep("WRITE_DILEMMA");
+      toast({
+        title: "Bureaucratic Error",
+        description: "The Oval Office could not process your request at this time.",
+        variant: "destructive"
+      });
     }
-  };
+  }, [selectedPresident, dilemma, generateMutation, navigate, toast]);
 
   const cancelPayment = () => {
     setPaymentState("idle");
     setPaymentError(null);
+    setStep("WRITE_DILEMMA");
   };
 
   return {

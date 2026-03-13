@@ -4,6 +4,29 @@ import { openai } from "@workspace/integrations-openai-ai-server";
 import { GenerateExecutiveOrderBody } from "@workspace/api-zod";
 import { db, executiveOrdersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { LN } from "@getalby/sdk";
+import { LightningAddress } from "@getalby/lightning-tools";
+
+const LIGHTNING_ADDRESS = "austinvach@cash.app";
+const SATS_FEE = 10;
+
+let lnClient: LN | null = null;
+function getLNClient(): LN {
+  if (!lnClient) {
+    const nwcUrl = process.env.NWC_URL;
+    if (!nwcUrl) throw new Error("NWC_URL not configured");
+    lnClient = new LN(nwcUrl);
+  }
+  return lnClient;
+}
+
+async function payFee(): Promise<void> {
+  const lnAddress = new LightningAddress(LIGHTNING_ADDRESS);
+  await lnAddress.fetch();
+  const invoice = await lnAddress.requestInvoice({ satoshi: SATS_FEE });
+  const ln = getLNClient();
+  await ln.pay(invoice.paymentRequest);
+}
 
 const router: IRouter = Router();
 
@@ -44,15 +67,6 @@ Sign off as "Joseph R. Biden Jr., President of the United States."`,
   },
 };
 
-router.get("/executive-orders/nwc-config", (_req, res) => {
-  const url = process.env.NWC_URL;
-  if (!url) {
-    res.status(500).json({ error: "NWC not configured" });
-    return;
-  }
-  res.json({ nwcUrl: url });
-});
-
 router.post("/executive-orders/generate", async (req, res) => {
   try {
     const parsed = GenerateExecutiveOrderBody.safeParse(req.body);
@@ -66,6 +80,15 @@ router.post("/executive-orders/generate", async (req, res) => {
 
     if (!profile) {
       res.status(400).json({ error: "Unknown president" });
+      return;
+    }
+
+    try {
+      await payFee();
+    } catch (payErr) {
+      console.error("Payment error:", payErr);
+      const msg = payErr instanceof Error ? payErr.message : String(payErr);
+      res.status(402).json({ error: "Payment failed", details: msg });
       return;
     }
 
