@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React from "react";
 import { AnimatePresence } from "framer-motion";
 import { Title } from "@/components/Title";
 import { PresidentSelector } from "@/components/PresidentSelector";
@@ -7,9 +7,6 @@ import { GeneratingState } from "@/components/GeneratingState";
 import { DocumentResult } from "@/components/DocumentResult";
 import { Footer } from "@/components/Footer";
 import { useOrderFlow } from "@/hooks/use-order-flow";
-
-const GRADIENT_H = 8;
-const SCROLL_RANGE = 64;
 
 export default function Home() {
   const {
@@ -29,28 +26,6 @@ export default function Home() {
 
   const isSelectStep = step === "SELECT_PRESIDENT";
 
-  const [scrollY, setScrollY] = useState(0);
-  const rafRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (!isSelectStep) {
-      setScrollY(0);
-      return;
-    }
-    const onScroll = () => {
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-      rafRef.current = requestAnimationFrame(() => setScrollY(window.scrollY));
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    setScrollY(window.scrollY);
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-    };
-  }, [isSelectStep]);
-
-  const progress = isSelectStep ? Math.min(scrollY / SCROLL_RANGE, 1) : 1;
-
   return (
     <div className="min-h-screen w-full flex flex-col relative overflow-x-hidden">
       {/* Decorative blobs */}
@@ -60,20 +35,15 @@ export default function Home() {
       </div>
 
       {/* Fixed header — gradient bar only */}
-      <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50 }}>
-        <div
-          style={{ height: GRADIENT_H }}
-          className="w-full bg-gradient-to-r from-primary via-secondary to-primary"
-        />
-      </header>
+      <header
+        style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50 }}
+        className="h-2 bg-gradient-to-r from-primary via-secondary to-primary"
+      />
 
-      {/* Content */}
-      <div
-        className="flex-1 relative z-20 flex flex-col"
-        style={{ paddingTop: GRADIENT_H }}
-      >
+      {/* Content with header margin */}
+      <div className="flex-1 relative z-20 flex flex-col pt-4">
         <AnimatePresence>
-          {isSelectStep && <Title key="title" progress={progress} />}
+          {isSelectStep && <Title key="title" progress={0} />}
         </AnimatePresence>
 
         <main className="flex-1 w-full pt-6 flex flex-col items-center justify-start min-h-[500px]">

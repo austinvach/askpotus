@@ -12,12 +12,12 @@ function lerp(a: number, b: number, t: number) {
 }
 
 interface TitleProps {
-  progress: number; // 0 at top, 1 after scrolling
+  progress?: number; // optional, unused for now
 }
 
-export function Title({ progress }: TitleProps) {
-  const sealSize = lerp(SEAL_LARGE, SEAL_SMALL, progress);
-  const pad = lerp(PAD_LARGE, PAD_SMALL, progress);
+export function Title({ progress = 0 }: TitleProps) {
+  const sealSize = SEAL_LARGE;
+  const pad = PAD_LARGE;
 
   return (
     <motion.div
